@@ -71,7 +71,7 @@ export const pokemonTcgApi = {
    * @param setId - The set ID (e.g., 'base1', 'swsh3', 'sv06')
    */
   async getSet(setId: string): Promise<DetailedSet> {
-    const url = `${BASE_URL}/set/${setId}`;
+    const url = `${BASE_URL}/sets/${setId}`;
     console.log('Fetching set:', url);
 
     const response = await fetch(url);
