@@ -18,24 +18,9 @@ function App() {
       try {
         setLoading(true);
         setError(null);
-        console.log('Starting to fetch sets from TCGdex...');
-
         const setsData = await pokemonTcgApi.getSets();
-        console.log('Fetched sets:', setsData.length);
-        console.log(setsData);
-        // Sort by release date (newest first)
-        const sortedSets = [...setsData].sort((a, b) => {
-          console.log(a);
-          console.log(b);
 
-          if (!a.releaseDate || !b.releaseDate) return 0;
-          return (
-            new Date(b.releaseDate).getTime() -
-            new Date(a.releaseDate).getTime()
-          );
-        });
-
-        setSets(sortedSets);
+        setSets(setsData);
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to fetch sets';
@@ -55,8 +40,8 @@ function App() {
     return (
       set.name.toLowerCase().includes(searchTerm) ||
       set.id.toLowerCase().includes(searchTerm) ||
-      (set.serie?.name.toLowerCase().includes(searchTerm)) ||
-      (set.releaseDate?.includes(searchTerm))
+      set.serie?.name.toLowerCase().includes(searchTerm) ||
+      set.releaseDate?.includes(searchTerm)
     );
   });
 
@@ -117,7 +102,13 @@ function App() {
         )}
 
         {!loading && !error && (
-          <div style={{ position: 'relative', maxWidth: '400px' }}>
+          <div
+            style={{
+              position: 'relative',
+              maxWidth: '400px',
+              margin: '0 auto',
+            }}
+          >
             <input
               id='set-select'
               type='text'
@@ -171,7 +162,9 @@ function App() {
                   >
                     <div style={{ fontWeight: 'bold' }}>{set.name}</div>
                     <div style={{ fontSize: '0.85rem', color: '#888' }}>
-                      {set.releaseDate ? `${set.releaseDate.split('-')[0]}` : ''}{' '}
+                      {set.releaseDate
+                        ? `${set.releaseDate.split('-')[0]}`
+                        : ''}{' '}
                       {set.serie?.name ? `• ${set.serie.name}` : ''}
                     </div>
                   </div>
@@ -202,6 +195,7 @@ function App() {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
+                    justifyContent: 'center',
                     gap: '1rem',
                     marginTop: '1rem',
                   }}
