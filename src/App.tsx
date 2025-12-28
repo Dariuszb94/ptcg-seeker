@@ -9,6 +9,8 @@ function App() {
   const [sets, setSets] = useState<PokemonSet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Fetch all Pokemon TCG sets from the API
   useEffect(() => {
@@ -20,9 +22,12 @@ function App() {
 
         const setsData = await pokemonTcgApi.getSets();
         console.log('Fetched sets:', setsData.length);
-
+        console.log(setsData);
         // Sort by release date (newest first)
         const sortedSets = [...setsData].sort((a, b) => {
+          console.log(a);
+          console.log(b);
+
           if (!a.releaseDate || !b.releaseDate) return 0;
           return (
             new Date(b.releaseDate).getTime() -
@@ -43,6 +48,41 @@ function App() {
 
     fetchSets();
   }, []);
+
+  // Filter sets based on search input
+  const filteredSets = sets.filter((set) => {
+    const searchTerm = searchInput.toLowerCase();
+    return (
+      set.name.toLowerCase().includes(searchTerm) ||
+      set.id.toLowerCase().includes(searchTerm) ||
+      (set.serie?.name.toLowerCase().includes(searchTerm)) ||
+      (set.releaseDate?.includes(searchTerm))
+    );
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchInput(value);
+    setShowSuggestions(true);
+    if (!value) {
+      setSelectedSet('');
+    }
+  };
+
+  const handleSelectSet = (set: PokemonSet) => {
+    setSelectedSet(set.id);
+    setSearchInput(set.name);
+    setShowSuggestions(false);
+  };
+
+  const handleInputFocus = () => {
+    setShowSuggestions(true);
+  };
+
+  const handleInputBlur = () => {
+    // Delay hiding to allow click on suggestion
+    setTimeout(() => setShowSuggestions(false), 200);
+  };
 
   return (
     <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
@@ -77,27 +117,68 @@ function App() {
         )}
 
         {!loading && !error && (
-          <select
-            id='set-select'
-            value={selectedSet}
-            onChange={(e) => setSelectedSet(e.target.value)}
-            style={{
-              padding: '0.5rem',
-              fontSize: '1rem',
-              width: '100%',
-              maxWidth: '400px',
-              borderRadius: '4px',
-              border: '2px solid #646cff',
-            }}
-          >
-            <option value=''>-- Choose a set --</option>
-            {sets.map((set) => (
-              <option key={set.id} value={set.id}>
-                {set.name}{' '}
-                {set.releaseDate ? `(${set.releaseDate.split('-')[0]})` : ''}
-              </option>
-            ))}
-          </select>
+          <div style={{ position: 'relative', maxWidth: '400px' }}>
+            <input
+              id='set-select'
+              type='text'
+              value={searchInput}
+              onChange={handleInputChange}
+              onFocus={handleInputFocus}
+              onBlur={handleInputBlur}
+              placeholder='Search for a Pokemon TCG set...'
+              style={{
+                padding: '0.5rem',
+                fontSize: '1rem',
+                width: '100%',
+                borderRadius: '4px',
+                border: '2px solid #646cff',
+                backgroundColor: '#1a1a1a',
+                color: '#fff',
+              }}
+            />
+            {showSuggestions && filteredSets.length > 0 && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  backgroundColor: '#1a1a1a',
+                  border: '2px solid #646cff',
+                  borderTop: 'none',
+                  borderRadius: '0 0 4px 4px',
+                  maxHeight: '300px',
+                  overflowY: 'auto',
+                  zIndex: 1000,
+                }}
+              >
+                {filteredSets.slice(0, 10).map((set) => (
+                  <div
+                    key={set.id}
+                    onClick={() => handleSelectSet(set)}
+                    style={{
+                      padding: '0.75rem',
+                      cursor: 'pointer',
+                      borderBottom: '1px solid #333',
+                      transition: 'background-color 0.2s',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#2a2a2a';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    <div style={{ fontWeight: 'bold' }}>{set.name}</div>
+                    <div style={{ fontSize: '0.85rem', color: '#888' }}>
+                      {set.releaseDate ? `${set.releaseDate.split('-')[0]}` : ''}{' '}
+                      {set.serie?.name ? `• ${set.serie.name}` : ''}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
 
