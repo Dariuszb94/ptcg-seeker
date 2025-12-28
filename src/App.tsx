@@ -235,37 +235,6 @@ function App() {
                   <p>
                     <strong>Name:</strong> {set.name}
                   </p>
-                  {set.serie && (
-                    <p>
-                      <strong>Series:</strong> {set.serie.name}
-                    </p>
-                  )}
-                  {set.releaseDate && (
-                    <p>
-                      <strong>Release Date:</strong> {set.releaseDate}
-                    </p>
-                  )}
-                  <p>
-                    <strong>Total Cards:</strong> {set.cardCount.total}
-                  </p>
-                  <p>
-                    <strong>Official Cards:</strong> {set.cardCount.official}
-                  </p>
-                  {set.legal && (
-                    <>
-                      <p>
-                        <strong>Legalities:</strong>
-                      </p>
-                      <ul style={{ marginLeft: '2rem' }}>
-                        <li>
-                          Standard: {set.legal.standard ? 'Legal' : 'Not Legal'}
-                        </li>
-                        <li>
-                          Expanded: {set.legal.expanded ? 'Legal' : 'Not Legal'}
-                        </li>
-                      </ul>
-                    </>
-                  )}
                 </div>
 
                 <CardGrid setId={selectedSet} />

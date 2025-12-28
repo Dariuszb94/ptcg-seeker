@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { pokemonTcgApi, formatImageUrl } from '../services/pokemon-tcg-api';
 
 interface CardSummary {
@@ -16,51 +16,33 @@ export function CardGrid({ setId }: CardGridProps) {
   const [cards, setCards] = useState<CardSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [loaded, setLoaded] = useState(false);
 
-  const loadCards = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const cardsData = await pokemonTcgApi.getCardsFromSet(setId);
-      // Map to ensure we have the required CardSummary structure
-      // TCGdex images need format: {imageUrl}/low.webp or {imageUrl}/high.webp
-      const cardSummaries = cardsData.map((card) => ({
-        id: card.id,
-        localId: card.localId,
-        name: card.name,
-        image: formatImageUrl(card.image, 'low', 'webp'),
-      }));
-      setCards(cardSummaries);
-      setLoaded(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch cards');
-      console.error('Error fetching cards:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Load cards automatically when setId changes
+  useEffect(() => {
+    const loadCards = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const cardsData = await pokemonTcgApi.getCardsFromSet(setId);
+        // Map to ensure we have the required CardSummary structure
+        // TCGdex images need format: {imageUrl}/low.webp or {imageUrl}/high.webp
+        const cardSummaries = cardsData.map((card) => ({
+          id: card.id,
+          localId: card.localId,
+          name: card.name,
+          image: formatImageUrl(card.image, 'low', 'webp'),
+        }));
+        setCards(cardSummaries);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch cards');
+        console.error('Error fetching cards:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (!loaded) {
-    return (
-      <div style={{ marginTop: '1rem' }}>
-        <button
-          onClick={loadCards}
-          style={{
-            padding: '0.75rem 1.5rem',
-            fontSize: '1rem',
-            backgroundColor: '#646cff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-          }}
-        >
-          Load Cards from this Set
-        </button>
-      </div>
-    );
-  }
+    loadCards();
+  }, [setId]);
 
   if (loading) {
     return <p style={{ color: '#888', marginTop: '1rem' }}>Loading cards...</p>;
