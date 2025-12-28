@@ -3,6 +3,7 @@ import './App.css';
 import { pokemonTcgApi, formatAssetUrl } from './services/pokemon-tcg-api';
 import type { PokemonSet } from './types/pokemon-tcg';
 import { CardGrid } from './components/CardGrid';
+import { Header } from './components/Header';
 
 function App() {
   const [selectedSet, setSelectedSet] = useState('');
@@ -70,180 +71,181 @@ function App() {
   };
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-      <h1>Pokemon TCG Card Selector</h1>
-
-      <div style={{ marginTop: '2rem' }}>
-        <label
-          htmlFor='set-select'
-          style={{
-            display: 'block',
-            marginBottom: '0.5rem',
-            fontSize: '1.1rem',
-          }}
-        >
-          Select a Pokemon TCG Set:
-        </label>
-
-        {loading && <p style={{ color: '#888' }}>Loading sets...</p>}
-
-        {error && (
-          <div
+    <>
+      <Header />
+      <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
+        <div style={{ marginTop: '2rem' }}>
+          <label
+            htmlFor='set-select'
             style={{
-              padding: '1rem',
-              backgroundColor: '#ff000020',
-              borderRadius: '4px',
-              color: '#ff6b6b',
-              marginBottom: '1rem',
+              display: 'block',
+              marginBottom: '0.5rem',
+              fontSize: '1.1rem',
             }}
           >
-            <p>Error: {error}</p>
-          </div>
-        )}
+            Select a Pokemon TCG Set:
+          </label>
 
-        {!loading && !error && (
-          <div
-            style={{
-              position: 'relative',
-              maxWidth: '400px',
-              margin: '0 auto',
-            }}
-          >
-            <input
-              id='set-select'
-              type='text'
-              value={searchInput}
-              onChange={handleInputChange}
-              onFocus={handleInputFocus}
-              onBlur={handleInputBlur}
-              placeholder='Search for a Pokemon TCG set...'
+          {loading && <p style={{ color: '#888' }}>Loading sets...</p>}
+
+          {error && (
+            <div
               style={{
-                padding: '0.5rem',
-                fontSize: '1rem',
-                width: '100%',
+                padding: '1rem',
+                backgroundColor: '#ff000020',
                 borderRadius: '4px',
-                border: '2px solid #646cff',
-                backgroundColor: '#1a1a1a',
-                color: '#fff',
+                color: '#ff6b6b',
+                marginBottom: '1rem',
               }}
-            />
-            {showSuggestions && filteredSets.length > 0 && (
-              <div
+            >
+              <p>Error: {error}</p>
+            </div>
+          )}
+
+          {!loading && !error && (
+            <div
+              style={{
+                position: 'relative',
+                maxWidth: '400px',
+                margin: '0 auto',
+              }}
+            >
+              <input
+                id='set-select'
+                type='text'
+                value={searchInput}
+                onChange={handleInputChange}
+                onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
+                placeholder='Search for a Pokemon TCG set...'
                 style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  right: 0,
-                  backgroundColor: '#1a1a1a',
+                  padding: '0.5rem',
+                  fontSize: '1rem',
+                  width: '100%',
+                  borderRadius: '4px',
                   border: '2px solid #646cff',
-                  borderTop: 'none',
-                  borderRadius: '0 0 4px 4px',
-                  maxHeight: '300px',
-                  overflowY: 'auto',
-                  zIndex: 1000,
+                  backgroundColor: '#1a1a1a',
+                  color: '#fff',
                 }}
-              >
-                {filteredSets.slice(0, 10).map((set) => (
+              />
+              {showSuggestions && filteredSets.length > 0 && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    backgroundColor: '#1a1a1a',
+                    border: '2px solid #646cff',
+                    borderTop: 'none',
+                    borderRadius: '0 0 4px 4px',
+                    maxHeight: '300px',
+                    overflowY: 'auto',
+                    zIndex: 1000,
+                  }}
+                >
+                  {filteredSets.slice(0, 10).map((set) => (
+                    <div
+                      key={set.id}
+                      onClick={() => handleSelectSet(set)}
+                      style={{
+                        padding: '0.75rem',
+                        cursor: 'pointer',
+                        borderBottom: '1px solid #333',
+                        transition: 'background-color 0.2s',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#2a2a2a';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
+                    >
+                      <div style={{ fontWeight: 'bold' }}>{set.name}</div>
+                      <div style={{ fontSize: '0.85rem', color: '#888' }}>
+                        {set.releaseDate
+                          ? `${set.releaseDate.split('-')[0]}`
+                          : ''}{' '}
+                        {set.serie?.name ? `• ${set.serie.name}` : ''}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {selectedSet && (
+          <div
+            style={{
+              marginTop: '2rem',
+              padding: '1.5rem',
+              backgroundColor: '#1a1a1a',
+              borderRadius: '8px',
+            }}
+          >
+            <h2>Selected Set:</h2>
+            {(() => {
+              const set = sets.find((s) => s.id === selectedSet);
+              if (!set) return null;
+              console.log({ set });
+              return (
+                <>
                   <div
-                    key={set.id}
-                    onClick={() => handleSelectSet(set)}
                     style={{
-                      padding: '0.75rem',
-                      cursor: 'pointer',
-                      borderBottom: '1px solid #333',
-                      transition: 'background-color 0.2s',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#2a2a2a';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '1rem',
+                      marginTop: '1rem',
                     }}
                   >
-                    <div style={{ fontWeight: 'bold' }}>{set.name}</div>
-                    <div style={{ fontSize: '0.85rem', color: '#888' }}>
-                      {set.releaseDate
-                        ? `${set.releaseDate.split('-')[0]}`
-                        : ''}{' '}
-                      {set.serie?.name ? `• ${set.serie.name}` : ''}
-                    </div>
+                    {set.logo && (
+                      <img
+                        src={formatAssetUrl(set.logo, 'webp')}
+                        alt={`${set.name} logo`}
+                        style={{ maxWidth: '200px', height: 'auto' }}
+                        loading='lazy'
+                        onError={(e) => {
+                          // Fallback to PNG if WebP fails
+                          const img = e.target as HTMLImageElement;
+                          if (img.src.endsWith('.webp')) {
+                            img.src = formatAssetUrl(set.logo, 'png');
+                          }
+                        }}
+                      />
+                    )}
+                    {set.symbol && (
+                      <img
+                        src={formatAssetUrl(set.symbol, 'webp')}
+                        alt={`${set.name} symbol`}
+                        style={{ maxWidth: '80px', height: 'auto' }}
+                        loading='lazy'
+                        onError={(e) => {
+                          // Fallback to PNG if WebP fails
+                          const img = e.target as HTMLImageElement;
+                          if (img.src.endsWith('.webp')) {
+                            img.src = formatAssetUrl(set.symbol, 'png');
+                          }
+                        }}
+                      />
+                    )}
                   </div>
-                ))}
-              </div>
-            )}
+                  <div style={{ marginTop: '1rem' }}>
+                    <p>
+                      <strong>Name:</strong> {set.name}
+                    </p>
+                  </div>
+
+                  <CardGrid setId={selectedSet} />
+                </>
+              );
+            })()}
           </div>
         )}
       </div>
-
-      {selectedSet && (
-        <div
-          style={{
-            marginTop: '2rem',
-            padding: '1.5rem',
-            backgroundColor: '#1a1a1a',
-            borderRadius: '8px',
-          }}
-        >
-          <h2>Selected Set:</h2>
-          {(() => {
-            const set = sets.find((s) => s.id === selectedSet);
-            if (!set) return null;
-            console.log({ set });
-            return (
-              <>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '1rem',
-                    marginTop: '1rem',
-                  }}
-                >
-                  {set.logo && (
-                    <img
-                      src={formatAssetUrl(set.logo, 'webp')}
-                      alt={`${set.name} logo`}
-                      style={{ maxWidth: '200px', height: 'auto' }}
-                      loading='lazy'
-                      onError={(e) => {
-                        // Fallback to PNG if WebP fails
-                        const img = e.target as HTMLImageElement;
-                        if (img.src.endsWith('.webp')) {
-                          img.src = formatAssetUrl(set.logo, 'png');
-                        }
-                      }}
-                    />
-                  )}
-                  {set.symbol && (
-                    <img
-                      src={formatAssetUrl(set.symbol, 'webp')}
-                      alt={`${set.name} symbol`}
-                      style={{ maxWidth: '80px', height: 'auto' }}
-                      loading='lazy'
-                      onError={(e) => {
-                        // Fallback to PNG if WebP fails
-                        const img = e.target as HTMLImageElement;
-                        if (img.src.endsWith('.webp')) {
-                          img.src = formatAssetUrl(set.symbol, 'png');
-                        }
-                      }}
-                    />
-                  )}
-                </div>
-                <div style={{ marginTop: '1rem' }}>
-                  <p>
-                    <strong>Name:</strong> {set.name}
-                  </p>
-                </div>
-
-                <CardGrid setId={selectedSet} />
-              </>
-            );
-          })()}
-        </div>
-      )}
-    </div>
+    </>
   );
 }
 
