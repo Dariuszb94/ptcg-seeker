@@ -1,6 +1,5 @@
 import './Header.css';
 import { BookMarked, Heart } from 'lucide-react';
-import { PokemonLogo } from './PokemonLogo';
 import { AppLogo } from './AppLogo';
 
 interface HeaderProps {
@@ -78,15 +77,6 @@ export const Header = ({ onNavigate, currentView = 'home' }: HeaderProps) => {
               </button>
             </>
           )}
-          <div
-            style={{
-              marginLeft: '0.5rem',
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
-            <PokemonLogo size={45} />
-          </div>
         </div>
       </div>
     </header>

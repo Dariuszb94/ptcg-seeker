@@ -16,7 +16,7 @@ export const AppLogo = () => {
         fill='none'
         xmlns='http://www.w3.org/2000/svg'
       >
-        {/* Stylized card with Pokeball */}
+        {/* Stylized card */}
         <rect
           x='15'
           y='10'

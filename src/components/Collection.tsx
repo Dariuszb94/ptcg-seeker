@@ -56,6 +56,15 @@ export function Collection() {
 
   return (
     <>
+      <style>
+        {`
+          @media (max-width: 768px) {
+            .remove-button {
+              opacity: 1 !important;
+            }
+          }
+        `}
+      </style>
       <CardModal
         card={selectedCard}
         onClose={() => setSelectedCard(null)}

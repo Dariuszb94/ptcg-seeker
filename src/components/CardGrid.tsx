@@ -136,6 +136,15 @@ export function CardGrid({ setId, setName }: CardGridProps) {
 
   return (
     <>
+      <style>
+        {`
+          @media (max-width: 768px) {
+            .card-buttons {
+              opacity: 1 !important;
+            }
+          }
+        `}
+      </style>
       <CardModal
         card={selectedCard}
         onClose={() => setSelectedCard(null)}
@@ -210,7 +219,7 @@ export function CardGrid({ setId, setName }: CardGridProps) {
                         : 'Add to collection'
                     }
                   >
-                    {inCollection ? <Check size={16} /> : <Plus size={16} />}
+                    {inCollection ? <Check size={24} /> : <Plus size={24} />}
                   </button>
 
                   <button
@@ -237,9 +246,9 @@ export function CardGrid({ setId, setName }: CardGridProps) {
                     }
                   >
                     {inWishlist ? (
-                      <Star size={16} fill='currentColor' />
+                      <Star size={24} fill='currentColor' />
                     ) : (
-                      <Heart size={16} />
+                      <Heart size={24} />
                     )}
                   </button>
                 </div>
