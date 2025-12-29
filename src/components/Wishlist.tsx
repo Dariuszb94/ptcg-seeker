@@ -7,6 +7,7 @@ import { CardModal } from './CardModal';
 export function Wishlist() {
   const [cards, setCards] = useState<StoredCard[]>([]);
   const [selectedCard, setSelectedCard] = useState<StoredCard | null>(null);
+  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
 
   const loadCards = () => {
     const wishlist = storageService.getWishlist();
@@ -21,6 +22,25 @@ export function Wishlist() {
   const handleRemove = (cardId: string) => {
     storageService.removeFromWishlist(cardId);
     loadCards();
+    // Close modal if the removed card is currently selected
+    if (selectedCard && selectedCard.id === cardId) {
+      setSelectedCard(null);
+    }
+  };
+
+  const handleToggleCollection = () => {
+    if (!selectedCard) return;
+
+    const collection = storageService.getCollection();
+    const inCollection = collection.some((c) => c.id === selectedCard.id);
+
+    if (inCollection) {
+      storageService.removeFromCollection(selectedCard.id);
+    } else {
+      storageService.addToCollection(selectedCard);
+    }
+    // Force re-render by creating new card object
+    setSelectedCard({ ...selectedCard });
   };
 
   // Handle ESC key to close modal
@@ -36,7 +56,22 @@ export function Wishlist() {
 
   return (
     <>
-      <CardModal card={selectedCard} onClose={() => setSelectedCard(null)} />
+      <CardModal
+        card={selectedCard}
+        onClose={() => setSelectedCard(null)}
+        inCollection={
+          selectedCard
+            ? storageService
+                .getCollection()
+                .some((c) => c.id === selectedCard.id)
+            : false
+        }
+        inWishlist={true}
+        onToggleCollection={selectedCard ? handleToggleCollection : undefined}
+        onToggleWishlist={
+          selectedCard ? () => handleRemove(selectedCard.id) : undefined
+        }
+      />
       <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
         <h2 style={{ ...cardGridStyles.title, fontSize: '2.2rem' }}>
           My Wishlist ({cards.length} cards)
@@ -54,27 +89,8 @@ export function Wishlist() {
               <div
                 key={card.id}
                 style={cardGridStyles.card}
-                onMouseEnter={(e) => {
-                  Object.assign(
-                    e.currentTarget.style,
-                    cardGridStyles.cardHover
-                  );
-                  const button = e.currentTarget.querySelector(
-                    '.remove-button'
-                  ) as HTMLElement;
-                  if (button) button.style.opacity = '1';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'none';
-                  e.currentTarget.style.boxShadow =
-                    '0 4px 20px rgba(0, 0, 0, 0.2)';
-                  e.currentTarget.style.borderColor =
-                    'rgba(100, 108, 255, 0.1)';
-                  const button = e.currentTarget.querySelector(
-                    '.remove-button'
-                  ) as HTMLElement;
-                  if (button) button.style.opacity = '0';
-                }}
+                onMouseEnter={() => setHoveredCardId(card.id)}
+                onMouseLeave={() => setHoveredCardId(null)}
               >
                 <button
                   className='remove-button'
@@ -89,6 +105,9 @@ export function Wishlist() {
                     borderRadius: '50%',
                     width: '28px',
                     height: '28px',
+                    minWidth: '28px',
+                    minHeight: '28px',
+                    padding: 0,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -97,7 +116,8 @@ export function Wishlist() {
                     zIndex: 1,
                     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
                     backdropFilter: 'blur(10px)',
-                    opacity: 0,
+                    opacity: hoveredCardId === card.id ? 1 : 0,
+                    flexShrink: 0,
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = '#cc0000';
@@ -110,7 +130,7 @@ export function Wishlist() {
                   }}
                   title='Remove from wishlist'
                 >
-                  <X size={16} />
+                  <X size={16} strokeWidth={2} />
                 </button>
                 <img
                   src={card.image}

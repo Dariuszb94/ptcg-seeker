@@ -24,6 +24,7 @@ export function CardGrid({ setId, setName }: CardGridProps) {
   const [collectionIds, setCollectionIds] = useState<Set<string>>(new Set());
   const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
   const [selectedCard, setSelectedCard] = useState<CardSummary | null>(null);
+  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
 
   // Load collection and wishlist IDs
   useEffect(() => {
@@ -135,7 +136,34 @@ export function CardGrid({ setId, setName }: CardGridProps) {
 
   return (
     <>
-      <CardModal card={selectedCard} onClose={() => setSelectedCard(null)} />
+      <CardModal
+        card={selectedCard}
+        onClose={() => setSelectedCard(null)}
+        inCollection={selectedCard ? collectionIds.has(selectedCard.id) : false}
+        inWishlist={selectedCard ? wishlistIds.has(selectedCard.id) : false}
+        onToggleCollection={
+          selectedCard
+            ? () => {
+                if (collectionIds.has(selectedCard.id)) {
+                  handleRemoveFromCollection(selectedCard.id);
+                } else {
+                  handleAddToCollection(selectedCard);
+                }
+              }
+            : undefined
+        }
+        onToggleWishlist={
+          selectedCard
+            ? () => {
+                if (wishlistIds.has(selectedCard.id)) {
+                  handleRemoveFromWishlist(selectedCard.id);
+                } else {
+                  handleAddToWishlist(selectedCard);
+                }
+              }
+            : undefined
+        }
+      />
       <div style={cardGridStyles.container}>
         <h3 style={cardGridStyles.title}>Cards in this Set ({cards.length})</h3>
         <div style={cardGridStyles.grid}>
@@ -147,31 +175,15 @@ export function CardGrid({ setId, setName }: CardGridProps) {
               <div
                 key={card.id}
                 style={cardGridStyles.card}
-                onMouseEnter={(e) => {
-                  Object.assign(
-                    e.currentTarget.style,
-                    cardGridStyles.cardHover
-                  );
-                  const buttons = e.currentTarget.querySelector(
-                    '.card-buttons'
-                  ) as HTMLElement;
-                  if (buttons) buttons.style.opacity = '1';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'none';
-                  e.currentTarget.style.boxShadow =
-                    '0 4px 20px rgba(0, 0, 0, 0.2)';
-                  e.currentTarget.style.borderColor =
-                    'rgba(100, 108, 255, 0.1)';
-                  const buttons = e.currentTarget.querySelector(
-                    '.card-buttons'
-                  ) as HTMLElement;
-                  if (buttons) buttons.style.opacity = '0';
-                }}
+                onMouseEnter={() => setHoveredCardId(card.id)}
+                onMouseLeave={() => setHoveredCardId(null)}
               >
                 <div
                   className='card-buttons'
-                  style={cardGridStyles.buttonContainer}
+                  style={{
+                    ...cardGridStyles.buttonContainer,
+                    opacity: hoveredCardId === card.id ? 1 : 0,
+                  }}
                 >
                   <button
                     onClick={() =>

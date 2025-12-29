@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { X, Plus, Check, Heart, Star } from 'lucide-react';
 
 interface CardModalProps {
   card: {
@@ -9,9 +9,20 @@ interface CardModalProps {
     image: string;
   } | null;
   onClose: () => void;
+  inCollection?: boolean;
+  inWishlist?: boolean;
+  onToggleCollection?: () => void;
+  onToggleWishlist?: () => void;
 }
 
-export function CardModal({ card, onClose }: CardModalProps) {
+export function CardModal({
+  card,
+  onClose,
+  inCollection = false,
+  inWishlist = false,
+  onToggleCollection,
+  onToggleWishlist,
+}: CardModalProps) {
   if (!card) return null;
 
   return createPortal(
@@ -68,34 +79,35 @@ export function CardModal({ card, onClose }: CardModalProps) {
           onClick={onClose}
           style={{
             position: 'absolute',
-            top: '-1rem',
-            right: '-1rem',
-            backgroundColor: 'rgba(255, 68, 68, 0.9)',
-            color: 'white',
+            top: '0.5rem',
+            right: '0.5rem',
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            color: '#fff',
             border: 'none',
-            borderRadius: '50%',
-            width: '40px',
-            height: '40px',
+            borderRadius: '8px',
+            width: '32px',
+            height: '32px',
+            minWidth: '32px',
+            minHeight: '32px',
+            padding: 0,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            transition: 'all 0.3s ease',
+            transition: 'all 0.2s ease',
             zIndex: 1001,
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
             backdropFilter: 'blur(10px)',
+            flexShrink: 0,
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#cc0000';
-            e.currentTarget.style.transform = 'scale(1.1)';
+            e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(255, 68, 68, 0.9)';
-            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
           }}
           title='Close (ESC)'
         >
-          <X size={24} />
+          <X size={20} strokeWidth={2} />
         </button>
 
         <div
@@ -144,9 +156,127 @@ export function CardModal({ card, onClose }: CardModalProps) {
             >
               {card.name}
             </h3>
-            <p style={{ margin: 0, color: '#a0a0c0', fontSize: '1rem' }}>
+            <p
+              style={{
+                margin: '0 0 1rem 0',
+                color: '#a0a0c0',
+                fontSize: '1rem',
+              }}
+            >
               #{card.localId}
             </p>
+
+            {/* Collection and Wishlist buttons */}
+            {(onToggleCollection || onToggleWishlist) && (
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '1rem',
+                  justifyContent: 'center',
+                  marginTop: '1rem',
+                }}
+              >
+                {onToggleCollection && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleCollection();
+                    }}
+                    style={{
+                      backgroundColor: inCollection
+                        ? 'rgba(76, 175, 80, 0.9)'
+                        : 'rgba(42, 42, 62, 0.9)',
+                      color: 'white',
+                      border: inCollection
+                        ? '2px solid #4CAF50'
+                        : '2px solid rgba(100, 108, 255, 0.3)',
+                      borderRadius: '12px',
+                      padding: '0.75rem 1.5rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      transition: 'all 0.3s ease',
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow =
+                        '0 6px 16px rgba(0, 0, 0, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow =
+                        '0 4px 12px rgba(0, 0, 0, 0.3)';
+                    }}
+                  >
+                    {inCollection ? (
+                      <>
+                        <Check size={20} />
+                        In Collection
+                      </>
+                    ) : (
+                      <>
+                        <Plus size={20} />
+                        Add to Collection
+                      </>
+                    )}
+                  </button>
+                )}
+
+                {onToggleWishlist && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleWishlist();
+                    }}
+                    style={{
+                      backgroundColor: inWishlist
+                        ? 'rgba(255, 64, 129, 0.9)'
+                        : 'rgba(42, 42, 62, 0.9)',
+                      color: 'white',
+                      border: inWishlist
+                        ? '2px solid #FF4081'
+                        : '2px solid rgba(100, 108, 255, 0.3)',
+                      borderRadius: '12px',
+                      padding: '0.75rem 1.5rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      transition: 'all 0.3s ease',
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow =
+                        '0 6px 16px rgba(0, 0, 0, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow =
+                        '0 4px 12px rgba(0, 0, 0, 0.3)';
+                    }}
+                  >
+                    {inWishlist ? (
+                      <>
+                        <Star size={20} fill='currentColor' />
+                        In Wishlist
+                      </>
+                    ) : (
+                      <>
+                        <Heart size={20} />
+                        Add to Wishlist
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
