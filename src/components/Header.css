@@ -1,15 +1,16 @@
 .app-header {
   position: sticky;
   top: 0;
-  background-color: #1a1a1a;
-  border-bottom: 2px solid #333;
+  background: rgba(26, 26, 46, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(100, 108, 255, 0.2);
   padding: 1rem 2rem;
   z-index: 100;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .header-content {
-  max-width: 1280px;
+  max-width: 1400px;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
@@ -19,8 +20,18 @@
 
 .header-title h1 {
   margin: 0;
-  font-size: 1.5rem;
-  color: #fff;
+  font-size: 1.8rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.header-title h1:hover {
+  transform: scale(1.02);
 }
 
 .header-auth {

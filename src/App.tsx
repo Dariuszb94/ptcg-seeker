@@ -4,8 +4,13 @@ import { pokemonTcgApi, formatAssetUrl } from './services/pokemon-tcg-api';
 import type { PokemonSet } from './types/pokemon-tcg';
 import { CardGrid } from './components/CardGrid';
 import { Header } from './components/Header';
+import { Collection } from './components/Collection';
+import { Wishlist } from './components/Wishlist';
+
+type View = 'home' | 'collection' | 'wishlist';
 
 function App() {
+  const [currentView, setCurrentView] = useState<View>('home');
   const [selectedSet, setSelectedSet] = useState('');
   const [sets, setSets] = useState<PokemonSet[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,32 +75,75 @@ function App() {
     setTimeout(() => setShowSuggestions(false), 200);
   };
 
+  const handleNavigate = (view: View) => {
+    setCurrentView(view);
+  };
+
+  // Render different views based on currentView
+  if (currentView === 'collection') {
+    return (
+      <>
+        <Header onNavigate={handleNavigate} currentView={currentView} />
+        <Collection />
+      </>
+    );
+  }
+
+  if (currentView === 'wishlist') {
+    return (
+      <>
+        <Header onNavigate={handleNavigate} currentView={currentView} />
+        <Wishlist />
+      </>
+    );
+  }
+
   return (
     <>
-      <Header />
-      <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
+      <Header onNavigate={handleNavigate} currentView={currentView} />
+      <div
+        style={{ padding: '2rem 1.5rem', maxWidth: '900px', margin: '0 auto' }}
+      >
         <div style={{ marginTop: '2rem' }}>
           <label
             htmlFor='set-select'
             style={{
               display: 'block',
-              marginBottom: '0.5rem',
-              fontSize: '1.1rem',
+              marginBottom: '1rem',
+              fontSize: '1.3rem',
+              fontWeight: '600',
+              textAlign: 'center',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
             }}
           >
-            Select a Pokemon TCG Set:
+            Select a Pokemon TCG Set
           </label>
 
-          {loading && <p style={{ color: '#888' }}>Loading sets...</p>}
+          {loading && (
+            <p
+              style={{
+                color: '#a0a0c0',
+                textAlign: 'center',
+                fontSize: '1.1rem',
+              }}
+            >
+              Loading sets...
+            </p>
+          )}
 
           {error && (
             <div
               style={{
-                padding: '1rem',
-                backgroundColor: '#ff000020',
-                borderRadius: '4px',
+                padding: '1.5rem',
+                backgroundColor: 'rgba(255, 68, 68, 0.2)',
+                borderRadius: '12px',
                 color: '#ff6b6b',
-                marginBottom: '1rem',
+                marginBottom: '1.5rem',
+                border: '1px solid rgba(255, 68, 68, 0.4)',
+                textAlign: 'center',
               }}
             >
               <p>Error: {error}</p>
@@ -106,7 +154,7 @@ function App() {
             <div
               style={{
                 position: 'relative',
-                maxWidth: '400px',
+                maxWidth: '600px',
                 margin: '0 auto',
               }}
             >
@@ -115,33 +163,50 @@ function App() {
                 type='text'
                 value={searchInput}
                 onChange={handleInputChange}
-                onFocus={handleInputFocus}
-                onBlur={handleInputBlur}
+                onFocus={(e) => {
+                  handleInputFocus();
+                  e.currentTarget.style.borderColor = '#667eea';
+                  e.currentTarget.style.boxShadow =
+                    '0 4px 20px rgba(100, 108, 255, 0.4)';
+                }}
+                onBlur={(e) => {
+                  setTimeout(() => {
+                    handleInputBlur();
+                    e.currentTarget.style.borderColor =
+                      'rgba(100, 108, 255, 0.3)';
+                    e.currentTarget.style.boxShadow =
+                      '0 4px 20px rgba(0, 0, 0, 0.2)';
+                  }, 200);
+                }}
                 placeholder='Search for a Pokemon TCG set...'
                 style={{
-                  padding: '0.5rem',
-                  fontSize: '1rem',
+                  padding: '1rem 1.25rem',
+                  fontSize: '1.05rem',
                   width: '100%',
-                  borderRadius: '4px',
-                  border: '2px solid #646cff',
-                  backgroundColor: '#1a1a1a',
+                  borderRadius: '12px',
+                  border: '2px solid rgba(100, 108, 255, 0.3)',
+                  backgroundColor: 'rgba(42, 42, 62, 0.6)',
+                  backdropFilter: 'blur(10px)',
                   color: '#fff',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
                 }}
               />
               {showSuggestions && filteredSets.length > 0 && (
                 <div
                   style={{
                     position: 'absolute',
-                    top: '100%',
+                    top: 'calc(100% + 0.5rem)',
                     left: 0,
                     right: 0,
-                    backgroundColor: '#1a1a1a',
-                    border: '2px solid #646cff',
-                    borderTop: 'none',
-                    borderRadius: '0 0 4px 4px',
-                    maxHeight: '300px',
+                    backgroundColor: 'rgba(42, 42, 62, 0.95)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(100, 108, 255, 0.3)',
+                    borderRadius: '12px',
+                    maxHeight: '400px',
                     overflowY: 'auto',
                     zIndex: 1000,
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
                   }}
                 >
                   {filteredSets.slice(0, 10).map((set) => (
@@ -149,20 +214,29 @@ function App() {
                       key={set.id}
                       onClick={() => handleSelectSet(set)}
                       style={{
-                        padding: '0.75rem',
+                        padding: '1rem 1.25rem',
                         cursor: 'pointer',
-                        borderBottom: '1px solid #333',
-                        transition: 'background-color 0.2s',
+                        borderBottom: '1px solid rgba(100, 108, 255, 0.1)',
+                        transition: 'all 0.2s ease',
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#2a2a2a';
+                        e.currentTarget.style.backgroundColor =
+                          'rgba(100, 108, 255, 0.2)';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = 'transparent';
                       }}
                     >
-                      <div style={{ fontWeight: 'bold' }}>{set.name}</div>
-                      <div style={{ fontSize: '0.85rem', color: '#888' }}>
+                      <div
+                        style={{
+                          fontWeight: '600',
+                          fontSize: '1rem',
+                          marginBottom: '0.25rem',
+                        }}
+                      >
+                        {set.name}
+                      </div>
+                      <div style={{ fontSize: '0.9rem', color: '#a0a0c0' }}>
                         {set.releaseDate
                           ? `${set.releaseDate.split('-')[0]}`
                           : ''}{' '}
@@ -179,13 +253,15 @@ function App() {
         {selectedSet && (
           <div
             style={{
-              marginTop: '2rem',
-              padding: '1.5rem',
-              backgroundColor: '#1a1a1a',
-              borderRadius: '8px',
+              marginTop: '3rem',
+              padding: '2rem',
+              backgroundColor: 'rgba(42, 42, 62, 0.6)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '16px',
+              border: '1px solid rgba(100, 108, 255, 0.2)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
             }}
           >
-            <h2>Selected Set:</h2>
             {(() => {
               const set = sets.find((s) => s.id === selectedSet);
               if (!set) return null;
@@ -197,18 +273,22 @@ function App() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '1rem',
-                      marginTop: '1rem',
+                      gap: '2rem',
+                      marginBottom: '2rem',
+                      flexWrap: 'wrap',
                     }}
                   >
                     {set.logo && (
                       <img
                         src={formatAssetUrl(set.logo, 'webp')}
                         alt={`${set.name} logo`}
-                        style={{ maxWidth: '200px', height: 'auto' }}
+                        style={{
+                          maxWidth: '250px',
+                          height: 'auto',
+                          filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5))',
+                        }}
                         loading='lazy'
                         onError={(e) => {
-                          // Fallback to PNG if WebP fails
                           const img = e.target as HTMLImageElement;
                           if (img.src.endsWith('.webp')) {
                             img.src = formatAssetUrl(set.logo, 'png');
@@ -220,10 +300,13 @@ function App() {
                       <img
                         src={formatAssetUrl(set.symbol, 'webp')}
                         alt={`${set.name} symbol`}
-                        style={{ maxWidth: '80px', height: 'auto' }}
+                        style={{
+                          maxWidth: '100px',
+                          height: 'auto',
+                          filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5))',
+                        }}
                         loading='lazy'
                         onError={(e) => {
-                          // Fallback to PNG if WebP fails
                           const img = e.target as HTMLImageElement;
                           if (img.src.endsWith('.webp')) {
                             img.src = formatAssetUrl(set.symbol, 'png');
@@ -232,13 +315,8 @@ function App() {
                       />
                     )}
                   </div>
-                  <div style={{ marginTop: '1rem' }}>
-                    <p>
-                      <strong>Name:</strong> {set.name}
-                    </p>
-                  </div>
 
-                  <CardGrid setId={selectedSet} />
+                  <CardGrid setId={selectedSet} setName={set.name} />
                 </>
               );
             })()}

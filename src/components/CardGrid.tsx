@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { pokemonTcgApi, formatImageUrl } from '../services/pokemon-tcg-api';
+import { storageService, type StoredCard } from '../services/storage';
+import { Heart, Plus, Check, Star } from 'lucide-react';
+import { cardGridStyles } from '../styles/cardStyles';
 
 interface CardSummary {
   id: string;
@@ -10,12 +13,65 @@ interface CardSummary {
 
 interface CardGridProps {
   setId: string;
+  setName?: string;
 }
 
-export function CardGrid({ setId }: CardGridProps) {
+export function CardGrid({ setId, setName }: CardGridProps) {
   const [cards, setCards] = useState<CardSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [collectionIds, setCollectionIds] = useState<Set<string>>(new Set());
+  const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
+
+  // Load collection and wishlist IDs
+  useEffect(() => {
+    const collection = storageService.getCollection();
+    const wishlist = storageService.getWishlist();
+    setCollectionIds(new Set(collection.map((c) => c.id)));
+    setWishlistIds(new Set(wishlist.map((c) => c.id)));
+  }, []);
+
+  const handleAddToCollection = (card: CardSummary) => {
+    const storedCard: StoredCard = {
+      id: card.id,
+      localId: card.localId,
+      name: card.name,
+      image: card.image,
+      setId,
+      setName: setName || '',
+      addedAt: new Date().toISOString(),
+    };
+    storageService.addToCollection(storedCard);
+    setCollectionIds(new Set([...collectionIds, card.id]));
+  };
+
+  const handleRemoveFromCollection = (cardId: string) => {
+    storageService.removeFromCollection(cardId);
+    const newIds = new Set(collectionIds);
+    newIds.delete(cardId);
+    setCollectionIds(newIds);
+  };
+
+  const handleAddToWishlist = (card: CardSummary) => {
+    const storedCard: StoredCard = {
+      id: card.id,
+      localId: card.localId,
+      name: card.name,
+      image: card.image,
+      setId,
+      setName: setName || '',
+      addedAt: new Date().toISOString(),
+    };
+    storageService.addToWishlist(storedCard);
+    setWishlistIds(new Set([...wishlistIds, card.id]));
+  };
+
+  const handleRemoveFromWishlist = (cardId: string) => {
+    storageService.removeFromWishlist(cardId);
+    const newIds = new Set(wishlistIds);
+    newIds.delete(cardId);
+    setWishlistIds(newIds);
+  };
 
   // Load cards automatically when setId changes
   useEffect(() => {
@@ -65,49 +121,116 @@ export function CardGrid({ setId }: CardGridProps) {
   }
 
   return (
-    <div style={{ marginTop: '2rem' }}>
-      <h3>Cards in this Set ({cards.length})</h3>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-          gap: '1rem',
-          marginTop: '1rem',
-        }}
-      >
-        {cards.map((card) => (
-          <div
-            key={card.id}
-            style={{
-              backgroundColor: '#2a2a2a',
-              borderRadius: '8px',
-              padding: '1rem',
-              textAlign: 'center',
-            }}
-          >
-            <img
-              src={card.image}
-              alt={card.name}
-              loading='lazy'
-              style={{
-                width: '100%',
-                height: 'auto',
-                borderRadius: '4px',
+    <div style={cardGridStyles.container}>
+      <h3 style={cardGridStyles.title}>Cards in this Set ({cards.length})</h3>
+      <div style={cardGridStyles.grid}>
+        {cards.map((card) => {
+          const inCollection = collectionIds.has(card.id);
+          const inWishlist = wishlistIds.has(card.id);
+
+          return (
+            <div
+              key={card.id}
+              style={cardGridStyles.card}
+              onMouseEnter={(e) => {
+                Object.assign(e.currentTarget.style, cardGridStyles.cardHover);
               }}
-              onError={(e) => {
-                // Fallback to PNG if WebP fails
-                const img = e.target as HTMLImageElement;
-                if (img.src.endsWith('.webp')) {
-                  img.src = img.src.replace('.webp', '.png');
-                }
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'none';
+                e.currentTarget.style.boxShadow =
+                  '0 4px 20px rgba(0, 0, 0, 0.2)';
+                e.currentTarget.style.borderColor = 'rgba(100, 108, 255, 0.1)';
               }}
-            />
-            <p style={{ marginTop: '0.5rem', fontWeight: 'bold' }}>
-              {card.name}
-            </p>
-            <p style={{ fontSize: '0.9rem', color: '#888' }}>#{card.localId}</p>
-          </div>
-        ))}
+            >
+              <img
+                src={card.image}
+                alt={card.name}
+                loading='lazy'
+                style={cardGridStyles.cardImage}
+                onError={(e) => {
+                  const img = e.target as HTMLImageElement;
+                  if (img.src.endsWith('.webp')) {
+                    img.src = img.src.replace('.webp', '.png');
+                  }
+                }}
+              />
+              <p style={cardGridStyles.cardName}>{card.name}</p>
+              <p style={cardGridStyles.cardId}>#{card.localId}</p>
+
+              <div style={cardGridStyles.buttonContainer}>
+                <button
+                  onClick={() =>
+                    inCollection
+                      ? handleRemoveFromCollection(card.id)
+                      : handleAddToCollection(card)
+                  }
+                  style={cardGridStyles.button(inCollection, '#4CAF50')}
+                  onMouseEnter={(e) => {
+                    if (!inCollection) {
+                      e.currentTarget.style.backgroundColor =
+                        'rgba(76, 175, 80, 0.2)';
+                      e.currentTarget.style.borderColor = '#4CAF50';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!inCollection) {
+                      e.currentTarget.style.backgroundColor =
+                        'rgba(42, 42, 62, 0.8)';
+                      e.currentTarget.style.borderColor =
+                        'rgba(100, 108, 255, 0.2)';
+                    }
+                  }}
+                  title={
+                    inCollection
+                      ? 'Remove from collection'
+                      : 'Add to collection'
+                  }
+                >
+                  {inCollection ? <Check size={16} /> : <Plus size={16} />}
+                  <span style={{ fontSize: '0.8rem' }}>
+                    {inCollection ? 'Collected' : 'Collect'}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    inWishlist
+                      ? handleRemoveFromWishlist(card.id)
+                      : handleAddToWishlist(card)
+                  }
+                  style={cardGridStyles.button(inWishlist, '#FF4081')}
+                  onMouseEnter={(e) => {
+                    if (!inWishlist) {
+                      e.currentTarget.style.backgroundColor =
+                        'rgba(255, 64, 129, 0.2)';
+                      e.currentTarget.style.borderColor = '#FF4081';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!inWishlist) {
+                      e.currentTarget.style.backgroundColor =
+                        'rgba(42, 42, 62, 0.8)';
+                      e.currentTarget.style.borderColor =
+                        'rgba(100, 108, 255, 0.2)';
+                    }
+                  }}
+                  title={
+                    inWishlist ? 'Remove from wishlist' : 'Add to wishlist'
+                  }
+                >
+                  {inWishlist ? (
+                    <Star size={16} fill='currentColor' />
+                  ) : (
+                    <Heart size={16} />
+                  )}
+                  <span style={{ fontSize: '0.8rem' }}>
+                    {inWishlist ? 'Wanted' : 'Want'}
+                  </span>
+                </button>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
