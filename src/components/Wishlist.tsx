@@ -39,33 +39,40 @@ export function Wishlist() {
               style={cardGridStyles.card}
               onMouseEnter={(e) => {
                 Object.assign(e.currentTarget.style, cardGridStyles.cardHover);
+                const button = e.currentTarget.querySelector('.remove-button') as HTMLElement;
+                if (button) button.style.opacity = '1';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'none';
                 e.currentTarget.style.boxShadow =
                   '0 4px 20px rgba(0, 0, 0, 0.2)';
                 e.currentTarget.style.borderColor = 'rgba(100, 108, 255, 0.1)';
+                const button = e.currentTarget.querySelector('.remove-button') as HTMLElement;
+                if (button) button.style.opacity = '0';
               }}
             >
               <button
+                className="remove-button"
                 onClick={() => handleRemove(card.id)}
                 style={{
                   position: 'absolute',
-                  top: '0.75rem',
-                  right: '0.75rem',
+                  top: '0.5rem',
+                  right: '0.5rem',
                   backgroundColor: 'rgba(255, 68, 68, 0.9)',
                   color: 'white',
                   border: 'none',
                   borderRadius: '50%',
-                  width: '32px',
-                  height: '32px',
+                  width: '28px',
+                  height: '28px',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   transition: 'all 0.3s ease',
                   zIndex: 1,
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
+                  backdropFilter: 'blur(10px)',
+                  opacity: 0,
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = '#cc0000';
@@ -78,7 +85,7 @@ export function Wishlist() {
                 }}
                 title='Remove from wishlist'
               >
-                <X size={18} />
+                <X size={16} />
               </button>
               <img
                 src={card.image}
@@ -97,7 +104,7 @@ export function Wishlist() {
               {card.setName && (
                 <p
                   style={{
-                    fontSize: '0.85rem',
+                    fontSize: '0.7rem',
                     color: '#888',
                     marginTop: '0.25rem',
                   }}

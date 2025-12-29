@@ -134,14 +134,78 @@ export function CardGrid({ setId, setName }: CardGridProps) {
               style={cardGridStyles.card}
               onMouseEnter={(e) => {
                 Object.assign(e.currentTarget.style, cardGridStyles.cardHover);
+                const buttons = e.currentTarget.querySelector('.card-buttons') as HTMLElement;
+                if (buttons) buttons.style.opacity = '1';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'none';
                 e.currentTarget.style.boxShadow =
                   '0 4px 20px rgba(0, 0, 0, 0.2)';
                 e.currentTarget.style.borderColor = 'rgba(100, 108, 255, 0.1)';
+                const buttons = e.currentTarget.querySelector('.card-buttons') as HTMLElement;
+                if (buttons) buttons.style.opacity = '0';
               }}
             >
+              <div className="card-buttons" style={cardGridStyles.buttonContainer}>
+                <button
+                  onClick={() =>
+                    inCollection
+                      ? handleRemoveFromCollection(card.id)
+                      : handleAddToCollection(card)
+                  }
+                  style={cardGridStyles.button(inCollection, '#4CAF50')}
+                  onMouseEnter={(e) => {
+                    if (!inCollection) {
+                      e.currentTarget.style.backgroundColor =
+                        'rgba(76, 175, 80, 0.9)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!inCollection) {
+                      e.currentTarget.style.backgroundColor =
+                        'rgba(0, 0, 0, 0.7)';
+                    }
+                  }}
+                  title={
+                    inCollection
+                      ? 'Remove from collection'
+                      : 'Add to collection'
+                  }
+                >
+                  {inCollection ? <Check size={16} /> : <Plus size={16} />}
+                </button>
+
+                <button
+                  onClick={() =>
+                    inWishlist
+                      ? handleRemoveFromWishlist(card.id)
+                      : handleAddToWishlist(card)
+                  }
+                  style={cardGridStyles.button(inWishlist, '#FF4081')}
+                  onMouseEnter={(e) => {
+                    if (!inWishlist) {
+                      e.currentTarget.style.backgroundColor =
+                        'rgba(255, 64, 129, 0.9)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!inWishlist) {
+                      e.currentTarget.style.backgroundColor =
+                        'rgba(0, 0, 0, 0.7)';
+                    }
+                  }}
+                  title={
+                    inWishlist ? 'Remove from wishlist' : 'Add to wishlist'
+                  }
+                >
+                  {inWishlist ? (
+                    <Star size={16} fill='currentColor' />
+                  ) : (
+                    <Heart size={16} />
+                  )}
+                </button>
+              </div>
+
               <img
                 src={card.image}
                 alt={card.name}
@@ -156,78 +220,6 @@ export function CardGrid({ setId, setName }: CardGridProps) {
               />
               <p style={cardGridStyles.cardName}>{card.name}</p>
               <p style={cardGridStyles.cardId}>#{card.localId}</p>
-
-              <div style={cardGridStyles.buttonContainer}>
-                <button
-                  onClick={() =>
-                    inCollection
-                      ? handleRemoveFromCollection(card.id)
-                      : handleAddToCollection(card)
-                  }
-                  style={cardGridStyles.button(inCollection, '#4CAF50')}
-                  onMouseEnter={(e) => {
-                    if (!inCollection) {
-                      e.currentTarget.style.backgroundColor =
-                        'rgba(76, 175, 80, 0.2)';
-                      e.currentTarget.style.borderColor = '#4CAF50';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!inCollection) {
-                      e.currentTarget.style.backgroundColor =
-                        'rgba(42, 42, 62, 0.8)';
-                      e.currentTarget.style.borderColor =
-                        'rgba(100, 108, 255, 0.2)';
-                    }
-                  }}
-                  title={
-                    inCollection
-                      ? 'Remove from collection'
-                      : 'Add to collection'
-                  }
-                >
-                  {inCollection ? <Check size={16} /> : <Plus size={16} />}
-                  <span style={{ fontSize: '0.8rem' }}>
-                    {inCollection ? 'Collected' : 'Collect'}
-                  </span>
-                </button>
-
-                <button
-                  onClick={() =>
-                    inWishlist
-                      ? handleRemoveFromWishlist(card.id)
-                      : handleAddToWishlist(card)
-                  }
-                  style={cardGridStyles.button(inWishlist, '#FF4081')}
-                  onMouseEnter={(e) => {
-                    if (!inWishlist) {
-                      e.currentTarget.style.backgroundColor =
-                        'rgba(255, 64, 129, 0.2)';
-                      e.currentTarget.style.borderColor = '#FF4081';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!inWishlist) {
-                      e.currentTarget.style.backgroundColor =
-                        'rgba(42, 42, 62, 0.8)';
-                      e.currentTarget.style.borderColor =
-                        'rgba(100, 108, 255, 0.2)';
-                    }
-                  }}
-                  title={
-                    inWishlist ? 'Remove from wishlist' : 'Add to wishlist'
-                  }
-                >
-                  {inWishlist ? (
-                    <Star size={16} fill='currentColor' />
-                  ) : (
-                    <Heart size={16} />
-                  )}
-                  <span style={{ fontSize: '0.8rem' }}>
-                    {inWishlist ? 'Wanted' : 'Want'}
-                  </span>
-                </button>
-              </div>
             </div>
           );
         })}
