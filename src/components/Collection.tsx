@@ -10,6 +10,18 @@ export function Collection() {
   );
   const [selectedCard, setSelectedCard] = useState<StoredCard | null>(null);
   const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 800);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const loadCards = () => {
     const collection = storageService.getCollection();
@@ -98,46 +110,6 @@ export function Collection() {
                 onMouseEnter={() => setHoveredCardId(card.id)}
                 onMouseLeave={() => setHoveredCardId(null)}
               >
-                <button
-                  className='remove-button'
-                  onClick={() => handleRemove(card.id)}
-                  style={{
-                    position: 'absolute',
-                    top: '0.5rem',
-                    right: '0.5rem',
-                    backgroundColor: 'rgba(255, 68, 68, 0.9)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '50%',
-                    width: '28px',
-                    height: '28px',
-                    minWidth: '28px',
-                    minHeight: '28px',
-                    padding: 0,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.3s ease',
-                    zIndex: 1,
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
-                    backdropFilter: 'blur(10px)',
-                    opacity: hoveredCardId === card.id ? 1 : 0,
-                    flexShrink: 0,
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#cc0000';
-                    e.currentTarget.style.transform = 'scale(1.1)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor =
-                      'rgba(255, 68, 68, 0.9)';
-                    e.currentTarget.style.transform = 'scale(1)';
-                  }}
-                  title='Remove from collection'
-                >
-                  <X size={16} strokeWidth={2} />
-                </button>
                 <img
                   src={card.image}
                   alt={card.name}
@@ -167,6 +139,31 @@ export function Collection() {
                     {card.setName}
                   </p>
                 )}
+                <button
+                  className='remove-button'
+                  onClick={() => handleRemove(card.id)}
+                  style={cardGridStyles.getRemoveButton(
+                    isMobile,
+                    hoveredCardId === card.id
+                  )}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#cc0000';
+                    if (!isMobile) {
+                      e.currentTarget.style.transform = 'scale(1.1)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor =
+                      'rgba(255, 68, 68, 0.9)';
+                    if (!isMobile) {
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }
+                  }}
+                  title='Remove from collection'
+                >
+                  <X size={16} strokeWidth={2} />
+                  {isMobile && <span>Remove</span>}
+                </button>
               </div>
             ))}
           </div>

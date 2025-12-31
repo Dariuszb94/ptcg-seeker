@@ -25,6 +25,18 @@ export function CardGrid({ setId, setName }: CardGridProps) {
   const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
   const [selectedCard, setSelectedCard] = useState<CardSummary | null>(null);
   const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 800);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Load collection and wishlist IDs
   useEffect(() => {
@@ -181,8 +193,8 @@ export function CardGrid({ setId, setName }: CardGridProps) {
                 <div
                   className='card-buttons'
                   style={{
-                    ...cardGridStyles.buttonContainer,
-                    opacity: hoveredCardId === card.id ? 1 : 0,
+                    ...cardGridStyles.getButtonContainer(isMobile),
+                    opacity: isMobile ? 1 : hoveredCardId === card.id ? 1 : 0,
                   }}
                 >
                   <button
@@ -191,7 +203,11 @@ export function CardGrid({ setId, setName }: CardGridProps) {
                         ? handleRemoveFromCollection(card.id)
                         : handleAddToCollection(card)
                     }
-                    style={cardGridStyles.button(inCollection, '#4CAF50')}
+                    style={cardGridStyles.getMobileButton(
+                      inCollection,
+                      '#4CAF50',
+                      isMobile
+                    )}
                     onMouseEnter={(e) => {
                       if (!inCollection) {
                         e.currentTarget.style.backgroundColor =
@@ -210,7 +226,11 @@ export function CardGrid({ setId, setName }: CardGridProps) {
                         : 'Add to collection'
                     }
                   >
-                    {inCollection ? <Check size={24} /> : <Plus size={24} />}
+                    {inCollection ? (
+                      <Check size={isMobile ? 20 : 24} />
+                    ) : (
+                      <Plus size={isMobile ? 20 : 24} />
+                    )}
                   </button>
 
                   <button
@@ -219,7 +239,11 @@ export function CardGrid({ setId, setName }: CardGridProps) {
                         ? handleRemoveFromWishlist(card.id)
                         : handleAddToWishlist(card)
                     }
-                    style={cardGridStyles.button(inWishlist, '#FF4081')}
+                    style={cardGridStyles.getMobileButton(
+                      inWishlist,
+                      '#FF4081',
+                      isMobile
+                    )}
                     onMouseEnter={(e) => {
                       if (!inWishlist) {
                         e.currentTarget.style.backgroundColor =
@@ -237,9 +261,9 @@ export function CardGrid({ setId, setName }: CardGridProps) {
                     }
                   >
                     {inWishlist ? (
-                      <Star size={24} fill='currentColor' />
+                      <Star size={isMobile ? 20 : 24} fill='currentColor' />
                     ) : (
-                      <Heart size={24} />
+                      <Heart size={isMobile ? 20 : 24} />
                     )}
                   </button>
                 </div>

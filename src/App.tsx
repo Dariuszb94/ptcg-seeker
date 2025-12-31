@@ -180,6 +180,7 @@ function App() {
                 position: 'relative',
                 maxWidth: '600px',
                 margin: '0 auto',
+                display: 'flex',
               }}
             >
               <input

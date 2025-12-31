@@ -19,6 +19,18 @@ export function Wishlist({ sharedCards, ownerName }: WishlistProps) {
 
   const [loadedSharedCards, setLoadedSharedCards] = useState<StoredCard[]>([]);
   const [loadingShared, setLoadingShared] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 800);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Fetch full card details for shared wishlist
   useEffect(() => {
@@ -160,13 +172,20 @@ export function Wishlist({ sharedCards, ownerName }: WishlistProps) {
         <div
           style={{
             display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
             justifyContent: 'space-between',
-            alignItems: 'center',
+            alignItems: isMobile ? 'stretch' : 'center',
             marginBottom: '1.5rem',
+            gap: isMobile ? '1rem' : 0,
           }}
         >
           <h2
-            style={{ ...cardGridStyles.title, fontSize: '2.2rem', margin: 0 }}
+            style={{
+              ...cardGridStyles.title,
+              fontSize: '2.2rem',
+              margin: 0,
+              textAlign: isMobile ? 'center' : 'left',
+            }}
           >
             {isViewingShared
               ? `${ownerName ? ownerName + "'s" : 'Shared'} Wishlist (${
@@ -192,6 +211,7 @@ export function Wishlist({ sharedCards, ownerName }: WishlistProps) {
               style={{
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: '0.5rem',
                 padding: '0.75rem 1.5rem',
                 backgroundColor: copied ? '#10b981' : '#3b82f6',
@@ -203,6 +223,7 @@ export function Wishlist({ sharedCards, ownerName }: WishlistProps) {
                 fontWeight: 500,
                 transition: 'all 0.3s ease',
                 boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)',
+                width: isMobile ? '100%' : 'auto',
               }}
               onMouseEnter={(e) => {
                 if (!copied) {
@@ -273,48 +294,6 @@ export function Wishlist({ sharedCards, ownerName }: WishlistProps) {
                 onMouseEnter={() => setHoveredCardId(card.id)}
                 onMouseLeave={() => setHoveredCardId(null)}
               >
-                {!isViewingShared && (
-                  <button
-                    className='remove-button'
-                    onClick={() => handleRemove(card.id)}
-                    style={{
-                      position: 'absolute',
-                      top: '0.5rem',
-                      right: '0.5rem',
-                      backgroundColor: 'rgba(255, 68, 68, 0.9)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '50%',
-                      width: '28px',
-                      height: '28px',
-                      minWidth: '28px',
-                      minHeight: '28px',
-                      padding: 0,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'all 0.3s ease',
-                      zIndex: 1,
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
-                      backdropFilter: 'blur(10px)',
-                      opacity: hoveredCardId === card.id ? 1 : 0,
-                      flexShrink: 0,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#cc0000';
-                      e.currentTarget.style.transform = 'scale(1.1)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor =
-                        'rgba(255, 68, 68, 0.9)';
-                      e.currentTarget.style.transform = 'scale(1)';
-                    }}
-                    title='Remove from wishlist'
-                  >
-                    <X size={16} strokeWidth={2} />
-                  </button>
-                )}
                 <img
                   src={card.image}
                   alt={card.name}
@@ -343,6 +322,33 @@ export function Wishlist({ sharedCards, ownerName }: WishlistProps) {
                   >
                     {card.setName}
                   </p>
+                )}
+                {!isViewingShared && (
+                  <button
+                    className='remove-button'
+                    onClick={() => handleRemove(card.id)}
+                    style={cardGridStyles.getRemoveButton(
+                      isMobile,
+                      hoveredCardId === card.id
+                    )}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#cc0000';
+                      if (!isMobile) {
+                        e.currentTarget.style.transform = 'scale(1.1)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor =
+                        'rgba(255, 68, 68, 0.9)';
+                      if (!isMobile) {
+                        e.currentTarget.style.transform = 'scale(1)';
+                      }
+                    }}
+                    title='Remove from wishlist'
+                  >
+                    <X size={16} strokeWidth={2} />
+                    {isMobile && <span>Remove</span>}
+                  </button>
                 )}
               </div>
             ))}
