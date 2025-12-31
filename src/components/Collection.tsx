@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { storageService, type StoredCard } from '../services/storage';
 import { X } from 'lucide-react';
 import { cardGridStyles } from '../styles/cardStyles';
 import { CardModal } from './CardModal';
 
 export function Collection() {
-  const [cards, setCards] = useState<StoredCard[]>([]);
+  const [cards, setCards] = useState<StoredCard[]>(() =>
+    storageService.getCollection()
+  );
   const [selectedCard, setSelectedCard] = useState<StoredCard | null>(null);
   const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
 
@@ -14,10 +16,18 @@ export function Collection() {
     setCards(collection);
   };
 
-  useEffect(() => {
-    const collection = storageService.getCollection();
-    setCards(collection);
-  }, []);
+  // Sort cards by set name, then by local ID
+  const sortedCards = useMemo(() => {
+    return [...cards].sort((a, b) => {
+      // Sort by set name first
+      const setCompare = (a.setName || '').localeCompare(b.setName || '');
+      if (setCompare !== 0) return setCompare;
+      // Then by local ID within the same set
+      return (a.localId || '').localeCompare(b.localId || '', undefined, {
+        numeric: true,
+      });
+    });
+  }, [cards]);
 
   const handleRemove = (cardId: string) => {
     storageService.removeFromCollection(cardId);
@@ -72,16 +82,16 @@ export function Collection() {
       />
       <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
         <h2 style={{ ...cardGridStyles.title, fontSize: '2.2rem' }}>
-          My Collection ({cards.length} cards)
+          My Collection ({sortedCards.length} cards)
         </h2>
 
-        {cards.length === 0 ? (
+        {sortedCards.length === 0 ? (
           <div style={cardGridStyles.emptyState}>
             <p>Your collection is empty. Start adding cards from the sets!</p>
           </div>
         ) : (
           <div style={cardGridStyles.grid}>
-            {cards.map((card) => (
+            {sortedCards.map((card) => (
               <div
                 key={card.id}
                 style={cardGridStyles.card}
