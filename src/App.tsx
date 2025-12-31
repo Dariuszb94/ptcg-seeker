@@ -6,6 +6,7 @@ import { CardGrid } from './components/CardGrid';
 import { Header } from './components/Header';
 import { Collection } from './components/Collection';
 import { Wishlist } from './components/Wishlist';
+import { storageService, type StoredCard } from './services/storage';
 
 type View = 'home' | 'collection' | 'wishlist';
 
@@ -17,6 +18,23 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [sharedWishlist, setSharedWishlist] = useState<StoredCard[] | null>(
+    null
+  );
+
+  // Check for shared wishlist in URL on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const wishlistParam = urlParams.get('wishlist');
+
+    if (wishlistParam) {
+      const decoded = storageService.decodeSharedWishlist(wishlistParam);
+      if (decoded.length > 0) {
+        setSharedWishlist(decoded);
+        setCurrentView('wishlist');
+      }
+    }
+  }, []);
 
   // Fetch all Pokemon TCG sets from the API
   useEffect(() => {
@@ -77,6 +95,12 @@ function App() {
 
   const handleNavigate = (view: View) => {
     setCurrentView(view);
+    // Clear shared wishlist when navigating away from shared view
+    if (view !== 'wishlist') {
+      setSharedWishlist(null);
+      // Clear URL params
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   };
 
   // Render different views based on currentView
@@ -93,7 +117,7 @@ function App() {
     return (
       <>
         <Header onNavigate={handleNavigate} currentView={currentView} />
-        <Wishlist />
+        <Wishlist sharedCards={sharedWishlist} ownerName='Friend' />
       </>
     );
   }

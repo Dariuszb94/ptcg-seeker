@@ -65,6 +65,46 @@ class StorageService {
     const wishlist = this.getWishlist();
     return wishlist.some((c) => c.id === cardId);
   }
+
+  // Share methods
+  encodeWishlistForSharing(): string {
+    const wishlist = this.getWishlist();
+    // Only store card IDs to make the link much shorter
+    const cardIds = wishlist.map((card) => card.id);
+    const data = JSON.stringify(cardIds);
+    // Use base64 encoding for URL safety
+    return btoa(data);
+  }
+
+  decodeSharedWishlist(encoded: string): StoredCard[] {
+    try {
+      const data = atob(encoded);
+      const cardIds: string[] = JSON.parse(data);
+      // Return minimal card data - the actual card details will be fetched when needed
+      return cardIds.map((id) => {
+        // Try to find the card in local storage first
+        const localCard = [...this.getCollection(), ...this.getWishlist()].find(
+          (c) => c.id === id
+        );
+        if (localCard) return localCard;
+
+        // Otherwise return minimal data with just the ID
+        // The component can display a loading state or fetch details if needed
+        return {
+          id,
+          localId: id.split('-').pop() || '',
+          name: 'Loading...',
+          image: '',
+          setId: id.split('-')[0] || '',
+          setName: '',
+          addedAt: new Date().toISOString(),
+        };
+      });
+    } catch (error) {
+      console.error('Failed to decode shared wishlist:', error);
+      return [];
+    }
+  }
 }
 
 export const storageService = new StorageService();
