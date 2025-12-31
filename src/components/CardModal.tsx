@@ -44,28 +44,6 @@ export function CardModal({
         animation: 'fadeIn 0.3s ease',
       }}
     >
-      <style>
-        {`
-          @keyframes fadeIn {
-            from {
-              opacity: 0;
-            }
-            to {
-              opacity: 1;
-            }
-          }
-          @keyframes scaleIn {
-            from {
-              transform: scale(0.8);
-              opacity: 0;
-            }
-            to {
-              transform: scale(1);
-              opacity: 1;
-            }
-          }
-        `}
-      </style>
       <div
         onClick={(e) => e.stopPropagation()}
         style={{

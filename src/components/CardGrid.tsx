@@ -136,15 +136,6 @@ export function CardGrid({ setId, setName }: CardGridProps) {
 
   return (
     <>
-      <style>
-        {`
-          @media (max-width: 768px) {
-            .card-buttons {
-              opacity: 1 !important;
-            }
-          }
-        `}
-      </style>
       <CardModal
         card={selectedCard}
         onClose={() => setSelectedCard(null)}
