@@ -23,7 +23,12 @@ export const VariantSelector: React.FC<VariantSelectorProps> = ({
   return (
     <div
       className={className}
-      style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}
+      style={{
+        display: 'flex',
+        gap: 8,
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+      }}
     >
       {variants.map((v) => {
         const active = value === v.id;
@@ -35,8 +40,12 @@ export const VariantSelector: React.FC<VariantSelectorProps> = ({
             style={{
               padding: '0.45rem 0.9rem',
               borderRadius: 9999,
-              border: active ? `2px solid var(--accent)` : '1px solid rgba(255,255,255,0.06)',
-              background: active ? 'linear-gradient(90deg, rgba(100,108,255,0.12), rgba(118,75,162,0.08))' : 'transparent',
+              border: active
+                ? `2px solid var(--accent)`
+                : '1px solid rgba(255,255,255,0.06)',
+              background: active
+                ? 'linear-gradient(90deg, rgba(100,108,255,0.12), rgba(118,75,162,0.08))'
+                : 'transparent',
               color: active ? 'white' : 'var(--muted)',
               cursor: 'pointer',
               fontWeight: 600,

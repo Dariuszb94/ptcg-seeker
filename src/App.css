@@ -35,10 +35,14 @@
 
 .card {
   padding: 1.5em;
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.02),
+    rgba(255, 255, 255, 0.01)
+  );
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  border: 1px solid rgba(255,255,255,0.02);
+  border: 1px solid rgba(255, 255, 255, 0.02);
 }
 
 .read-the-docs {
