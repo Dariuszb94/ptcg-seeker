@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom';
 import { X, Plus, Check, Heart, Star } from 'lucide-react';
+import { useState } from 'react';
 
 interface CardModalProps {
   card: {
@@ -23,7 +24,13 @@ export function CardModal({
   onToggleCollection,
   onToggleWishlist,
 }: CardModalProps) {
+  const [imageLoadedMap, setImageLoadedMap] = useState<Map<string, boolean>>(
+    new Map(),
+  );
+
   if (!card) return null;
+
+  const imageLoaded = imageLoadedMap.get(card.id) ?? false;
 
   return createPortal(
     <div
@@ -98,28 +105,63 @@ export function CardModal({
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
           }}
         >
-          <img
-            src={card.image.replace('/low.webp', '/high.webp')}
-            alt={card.name}
+          <div
             style={{
+              position: 'relative',
               width: '100%',
-              height: 'auto',
+              paddingBottom: '139.5%', // Pokemon card aspect ratio
+              backgroundColor: 'rgba(100, 108, 255, 0.05)',
               borderRadius: '12px',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+              overflow: 'hidden',
             }}
-            onError={(e) => {
-              const img = e.target as HTMLImageElement;
-              // Try PNG if webp fails
-              if (img.src.includes('/high.webp')) {
-                img.src = img.src.replace('/high.webp', '/high.png');
-              } else if (img.src.includes('/high.png')) {
-                // Fallback to low quality
-                img.src = img.src.replace('/high.png', '/low.webp');
-              } else if (img.src.endsWith('.webp')) {
-                img.src = img.src.replace('.webp', '.png');
-              }
-            }}
-          />
+          >
+            {!imageLoaded && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background:
+                    'linear-gradient(90deg, rgba(100, 108, 255, 0.05) 25%, rgba(100, 108, 255, 0.15) 50%, rgba(100, 108, 255, 0.05) 75%)',
+                  backgroundSize: '200% 100%',
+                  animation: 'shimmer 1.5s infinite',
+                }}
+              />
+            )}
+            <img
+              src={card.image.replace('/low.webp', '/high.webp')}
+              alt={card.name}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                borderRadius: '12px',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+                opacity: imageLoaded ? 1 : 0,
+                transition: 'opacity 0.3s ease',
+              }}
+              onLoad={() => {
+                setImageLoadedMap((prev) => new Map(prev).set(card.id, true));
+              }}
+              onError={(e) => {
+                const img = e.target as HTMLImageElement;
+                // Try PNG if webp fails
+                if (img.src.includes('/high.webp')) {
+                  img.src = img.src.replace('/high.webp', '/high.png');
+                } else if (img.src.includes('/high.png')) {
+                  // Fallback to low quality
+                  img.src = img.src.replace('/high.png', '/low.webp');
+                } else if (img.src.endsWith('.webp')) {
+                  img.src = img.src.replace('.webp', '.png');
+                }
+              }}
+            />
+          </div>
           <div style={{ marginTop: '1rem', textAlign: 'center' }}>
             <h3
               style={{
@@ -259,6 +301,6 @@ export function CardModal({
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

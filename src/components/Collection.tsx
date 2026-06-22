@@ -6,11 +6,12 @@ import { CardModal } from './CardModal';
 
 export function Collection() {
   const [cards, setCards] = useState<StoredCard[]>(() =>
-    storageService.getCollection()
+    storageService.getCollection(),
   );
   const [selectedCard, setSelectedCard] = useState<StoredCard | null>(null);
   const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
 
   // Detect mobile screen size
   useEffect(() => {
@@ -110,22 +111,60 @@ export function Collection() {
                 onMouseEnter={() => setHoveredCardId(card.id)}
                 onMouseLeave={() => setHoveredCardId(null)}
               >
-                <img
-                  src={card.image}
-                  alt={card.name}
-                  loading='lazy'
+                <div
                   style={{
-                    ...cardGridStyles.cardImage,
-                    cursor: 'pointer',
+                    position: 'relative',
+                    width: '100%',
+                    paddingBottom: '139.5%', // Pokemon card aspect ratio
+                    backgroundColor: 'rgba(100, 108, 255, 0.05)',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
                   }}
-                  onClick={() => setSelectedCard(card)}
-                  onError={(e) => {
-                    const img = e.target as HTMLImageElement;
-                    if (img.src.endsWith('.webp')) {
-                      img.src = img.src.replace('.webp', '.png');
-                    }
-                  }}
-                />
+                >
+                  {!loadedImages.has(card.id) && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background:
+                          'linear-gradient(90deg, rgba(100, 108, 255, 0.05) 25%, rgba(100, 108, 255, 0.15) 50%, rgba(100, 108, 255, 0.05) 75%)',
+                        backgroundSize: '200% 100%',
+                        animation: 'shimmer 1.5s infinite',
+                      }}
+                    />
+                  )}
+                  <img
+                    src={card.image}
+                    alt={card.name}
+                    loading='lazy'
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
+                      cursor: 'pointer',
+                      opacity: loadedImages.has(card.id) ? 1 : 0,
+                      transition: 'opacity 0.3s ease',
+                    }}
+                    onClick={() => setSelectedCard(card)}
+                    onLoad={() => {
+                      setLoadedImages((prev) => new Set([...prev, card.id]));
+                    }}
+                    onError={(e) => {
+                      const img = e.target as HTMLImageElement;
+                      if (img.src.endsWith('.webp')) {
+                        img.src = img.src.replace('.webp', '.png');
+                      }
+                    }}
+                  />
+                </div>
                 <p style={cardGridStyles.cardName}>{card.name}</p>
                 <p style={cardGridStyles.cardId}>#{card.localId}</p>
                 {card.setName && (
@@ -144,7 +183,7 @@ export function Collection() {
                   onClick={() => handleRemove(card.id)}
                   style={cardGridStyles.getRemoveButton(
                     isMobile,
-                    hoveredCardId === card.id
+                    hoveredCardId === card.id,
                   )}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = '#cc0000';
