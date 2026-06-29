@@ -1,73 +1,91 @@
-# React + TypeScript + Vite
+# Pokemon TCG Seeker 🎴
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern web application for managing your Pokemon Trading Card Game collection. Track your cards, build wishlists, and discover amazing Pokemon cards from every set.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 🔍 **Search & Browse** - Explore all Pokemon TCG sets with an intuitive search interface
+- 📚 **Collection Management** - Track which cards you own with persistent storage
+- ❤️ **Wishlist** - Create and share wishlists of cards you're hunting for
+- 📱 **Responsive Design** - Beautiful, modern interface that works on all devices
+- 🎨 **High Contrast** - Accessible design with excellent text readability
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **React 19** with TypeScript
+- **Vite** for fast development and optimized builds
+- **TCGdex API** for Pokemon card data
+- **Lucide React** for icons
+- **Local Storage** for data persistence
 
-## Expanding the ESLint configuration
+## Development
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Node.js 18+ and npm
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Installation
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+# Clone the repository
+git clone https://github.com/Dariuszb94/ptcg-seeker.git
+
+# Navigate to project directory
+cd ptcg-seeker
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Available Scripts
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev      # Start development server
+npm run build    # Build for production
+npm run preview  # Preview production build locally
+npm run lint     # Run ESLint
+npm run deploy   # Deploy to GitHub Pages
 ```
+
+## Deployment
+
+This app is configured for GitHub Pages deployment.
+
+### Deploy to GitHub Pages
+
+```bash
+# Build and deploy in one command
+npm run deploy
+```
+
+The app will be available at: `https://Dariuszb94.github.io/ptcg-seeker`
+
+### Manual Deployment Steps
+
+1. Ensure you have the `gh-pages` package installed (already included)
+2. Run `npm run build` to create the production build
+3. Run `npm run deploy` to publish to GitHub Pages
+4. Go to your repository settings → Pages and ensure the source is set to `gh-pages` branch
+
+## Configuration
+
+The app uses the following configuration for GitHub Pages:
+
+- **Base path**: `/ptcg-seeker/` (configured in `vite.config.ts`)
+- **Homepage**: Set in `package.json`
+- **Client-side routing**: Supported via 404.html redirect strategy
+
+## API
+
+This project uses the [TCGdex API](https://tcgdex.dev/) to fetch Pokemon card data. No API key required.
+
+## License
+
+This project is open source and available under the MIT License.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
