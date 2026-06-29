@@ -6,10 +6,7 @@ export const cardGridStyles = {
   title: {
     fontSize: '1.8rem',
     fontWeight: '700',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
+    color: '#f8f9fa',
     marginBottom: '1.5rem',
   } as React.CSSProperties,
   grid: {
@@ -46,12 +43,12 @@ export const cardGridStyles = {
     marginTop: '0.5rem',
     fontWeight: '600',
     fontSize: '0.85rem',
-    color: '#fff',
+    color: '#f8f9fa',
     lineHeight: '1.2',
   },
   cardId: {
     fontSize: '0.75rem',
-    color: '#a0a0c0',
+    color: '#d1d5db',
     marginTop: '0.25rem',
   },
   // Mobile-responsive button container
@@ -150,7 +147,7 @@ export const cardGridStyles = {
     fontWeight: isMobile ? '600' : 'normal',
   }),
   emptyState: {
-    color: '#a0a0c0',
+    color: '#d1d5db',
     textAlign: 'center' as const,
     marginTop: '4rem',
     fontSize: '1.1rem',

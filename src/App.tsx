@@ -6,6 +6,7 @@ import { CardGrid } from './components/CardGrid';
 import { Header } from './components/Header';
 import { Collection } from './components/Collection';
 import { Wishlist } from './components/Wishlist';
+import { HeroSection } from './components/HeroSection';
 import { storageService, type StoredCard } from './services/storage';
 
 type View = 'home' | 'collection' | 'wishlist';
@@ -19,7 +20,7 @@ function App() {
   const [searchInput, setSearchInput] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [sharedWishlist, setSharedWishlist] = useState<StoredCard[] | null>(
-    null
+    null,
   );
 
   // Check for shared wishlist in URL on mount
@@ -108,7 +109,9 @@ function App() {
     return (
       <>
         <Header onNavigate={handleNavigate} currentView={currentView} />
-        <Collection />
+        <main id='main-content'>
+          <Collection />
+        </main>
       </>
     );
   }
@@ -117,7 +120,9 @@ function App() {
     return (
       <>
         <Header onNavigate={handleNavigate} currentView={currentView} />
-        <Wishlist sharedCards={sharedWishlist} ownerName='Friend' />
+        <main id='main-content'>
+          <Wishlist sharedCards={sharedWishlist} ownerName='Friend' />
+        </main>
       </>
     );
   }
@@ -125,229 +130,265 @@ function App() {
   return (
     <>
       <Header onNavigate={handleNavigate} currentView={currentView} />
-      <div
-        style={{ padding: '2rem 1.5rem', maxWidth: '900px', margin: '0 auto' }}
-      >
-        <div style={{ marginTop: '2rem' }}>
-          <label
-            htmlFor='set-select'
-            style={{
-              display: 'block',
-              marginBottom: '1rem',
-              fontSize: '1.3rem',
-              fontWeight: '600',
-              textAlign: 'center',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}
-          >
-            Select a Pokemon TCG Set
-          </label>
 
-          {loading && (
-            <p
+      <main id='main-content'>
+        <div
+          style={{
+            padding: '2rem 1.5rem',
+            maxWidth: '900px',
+            margin: '0 auto',
+          }}
+        >
+          <div style={{ marginTop: '0.5rem' }}>
+            <label
+              htmlFor='set-select'
               style={{
-                color: '#a0a0c0',
+                display: 'block',
+                marginBottom: '1rem',
+                fontSize: '1.3rem',
+                fontWeight: '600',
                 textAlign: 'center',
-                fontSize: '1.1rem',
+                color: '#f8f9fa',
               }}
             >
-              Loading sets...
-            </p>
-          )}
+              Select a Pokemon TCG Set
+            </label>
 
-          {error && (
-            <div
-              style={{
-                padding: '1.5rem',
-                backgroundColor: 'rgba(255, 68, 68, 0.2)',
-                borderRadius: '12px',
-                color: '#ff6b6b',
-                marginBottom: '1.5rem',
-                border: '1px solid rgba(255, 68, 68, 0.4)',
-                textAlign: 'center',
-              }}
-            >
-              <p>Error: {error}</p>
-            </div>
-          )}
-
-          {!loading && !error && (
-            <div
-              style={{
-                position: 'relative',
-                maxWidth: '600px',
-                margin: '0 auto',
-                display: 'flex',
-              }}
-            >
-              <input
-                id='set-select'
-                type='text'
-                value={searchInput}
-                onChange={handleInputChange}
-                onFocus={(e) => {
-                  handleInputFocus();
-                  e.currentTarget.style.borderColor = '#667eea';
-                  e.currentTarget.style.boxShadow =
-                    '0 4px 20px rgba(100, 108, 255, 0.4)';
-                }}
-                onBlur={(e) => {
-                  setTimeout(() => {
-                    handleInputBlur();
-                    e.currentTarget.style.borderColor =
-                      'rgba(100, 108, 255, 0.3)';
-                    e.currentTarget.style.boxShadow =
-                      '0 4px 20px rgba(0, 0, 0, 0.2)';
-                  }, 200);
-                }}
-                placeholder='Search for a Pokemon TCG set...'
+            {loading && (
+              <p
                 style={{
-                  padding: '1rem 1.25rem',
-                  fontSize: '1.05rem',
-                  width: '100%',
-                  borderRadius: '12px',
-                  border: '2px solid rgba(100, 108, 255, 0.3)',
-                  backgroundColor: 'rgba(42, 42, 62, 0.6)',
-                  backdropFilter: 'blur(10px)',
-                  color: '#fff',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+                  color: '#d1d5db',
+                  textAlign: 'center',
+                  fontSize: '1.1rem',
                 }}
-              />
-              {showSuggestions && filteredSets.length > 0 && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 'calc(100% + 0.5rem)',
-                    left: 0,
-                    right: 0,
-                    backgroundColor: 'rgba(42, 42, 62, 0.95)',
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(100, 108, 255, 0.3)',
-                    borderRadius: '12px',
-                    maxHeight: '400px',
-                    overflowY: 'auto',
-                    zIndex: 1000,
-                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+              >
+                Loading sets...
+              </p>
+            )}
+
+            {error && (
+              <div
+                style={{
+                  padding: '1.5rem',
+                  backgroundColor: 'rgba(255, 68, 68, 0.2)',
+                  borderRadius: '12px',
+                  color: '#ff6b6b',
+                  marginBottom: '1.5rem',
+                  border: '1px solid rgba(255, 68, 68, 0.4)',
+                  textAlign: 'center',
+                }}
+              >
+                <p>Error: {error}</p>
+              </div>
+            )}
+
+            {!loading && !error && (
+              <div
+                style={{
+                  position: 'relative',
+                  maxWidth: '600px',
+                  margin: '0 auto',
+                  display: 'flex',
+                }}
+              >
+                <input
+                  id='set-select'
+                  type='text'
+                  value={searchInput}
+                  onChange={handleInputChange}
+                  onFocus={(e) => {
+                    handleInputFocus();
+                    e.currentTarget.style.borderColor = '#667eea';
+                    e.currentTarget.style.boxShadow =
+                      '0 4px 20px rgba(100, 108, 255, 0.4)';
                   }}
-                >
-                  {filteredSets.slice(0, 10).map((set) => (
-                    <div
-                      key={set.id}
-                      onClick={() => handleSelectSet(set)}
-                      style={{
-                        padding: '1rem 1.25rem',
-                        cursor: 'pointer',
-                        borderBottom: '1px solid rgba(100, 108, 255, 0.1)',
-                        transition: 'all 0.2s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor =
-                          'rgba(100, 108, 255, 0.2)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                      }}
-                    >
+                  onBlur={(e) => {
+                    setTimeout(() => {
+                      handleInputBlur();
+                      e.currentTarget.style.borderColor =
+                        'rgba(100, 108, 255, 0.3)';
+                      e.currentTarget.style.boxShadow =
+                        '0 4px 20px rgba(0, 0, 0, 0.2)';
+                    }, 200);
+                  }}
+                  placeholder='Search for a Pokemon TCG set...'
+                  role='combobox'
+                  aria-expanded={showSuggestions && filteredSets.length > 0}
+                  aria-controls='set-suggestions'
+                  aria-autocomplete='list'
+                  aria-label='Search for Pokemon TCG sets by name or series'
+                  style={{
+                    padding: '1rem 1.25rem',
+                    fontSize: '1.05rem',
+                    width: '100%',
+                    borderRadius: '12px',
+                    border: '2px solid rgba(100, 108, 255, 0.3)',
+                    backgroundColor: 'rgba(42, 42, 62, 0.6)',
+                    backdropFilter: 'blur(10px)',
+                    color: '#fff',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+                  }}
+                />
+                {showSuggestions && filteredSets.length > 0 && (
+                  <div
+                    id='set-suggestions'
+                    role='listbox'
+                    aria-label='Pokemon TCG set suggestions'
+                    style={{
+                      position: 'absolute',
+                      top: 'calc(100% + 0.5rem)',
+                      left: 0,
+                      right: 0,
+                      backgroundColor: 'rgba(42, 42, 62, 0.95)',
+                      backdropFilter: 'blur(10px)',
+                      border: '1px solid rgba(100, 108, 255, 0.3)',
+                      borderRadius: '12px',
+                      maxHeight: '400px',
+                      overflowY: 'auto',
+                      zIndex: 1000,
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+                    }}
+                  >
+                    {filteredSets.slice(0, 10).map((set) => (
                       <div
+                        key={set.id}
+                        role='option'
+                        aria-selected={selectedSet === set.id}
+                        tabIndex={0}
+                        onClick={() => handleSelectSet(set)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleSelectSet(set);
+                          }
+                        }}
                         style={{
-                          fontWeight: '600',
-                          fontSize: '1rem',
-                          marginBottom: '0.25rem',
+                          padding: '1rem 1.25rem',
+                          cursor: 'pointer',
+                          borderBottom: '1px solid rgba(100, 108, 255, 0.1)',
+                          transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor =
+                            'rgba(100, 108, 255, 0.2)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }}
+                        onFocus={(e) => {
+                          e.currentTarget.style.backgroundColor =
+                            'rgba(100, 108, 255, 0.2)';
+                          e.currentTarget.style.outline = '2px solid #667eea';
+                          e.currentTarget.style.outlineOffset = '-2px';
+                        }}
+                        onBlur={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.outline = 'none';
                         }}
                       >
-                        {set.name}
+                        <div
+                          style={{
+                            fontWeight: '600',
+                            fontSize: '1rem',
+                            marginBottom: '0.25rem',
+                          }}
+                        >
+                          {set.name}
+                        </div>
+                        <div style={{ fontSize: '0.9rem', color: '#d1d5db' }}>
+                          {set.releaseDate
+                            ? `${set.releaseDate.split('-')[0]}`
+                            : ''}{' '}
+                          {set.serie?.name ? `• ${set.serie.name}` : ''}
+                        </div>
                       </div>
-                      <div style={{ fontSize: '0.9rem', color: '#a0a0c0' }}>
-                        {set.releaseDate
-                          ? `${set.releaseDate.split('-')[0]}`
-                          : ''}{' '}
-                        {set.serie?.name ? `• ${set.serie.name}` : ''}
-                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {selectedSet && (
+            <div
+              style={{
+                marginTop: '3rem',
+                padding: '2rem',
+                backgroundColor: 'rgba(42, 42, 62, 0.6)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '16px',
+                border: '1px solid rgba(100, 108, 255, 0.2)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+              }}
+            >
+              {(() => {
+                const set = sets.find((s) => s.id === selectedSet);
+                if (!set) return null;
+                console.log({ set });
+                return (
+                  <>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '2rem',
+                        marginBottom: '2rem',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      {set.logo && (
+                        <img
+                          src={formatAssetUrl(set.logo, 'webp')}
+                          alt={`${set.name} logo`}
+                          style={{
+                            maxWidth: '250px',
+                            height: 'auto',
+                            filter:
+                              'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5))',
+                          }}
+                          loading='lazy'
+                          onError={(e) => {
+                            const img = e.target as HTMLImageElement;
+                            if (img.src.endsWith('.webp')) {
+                              img.src = formatAssetUrl(set.logo, 'png');
+                            }
+                          }}
+                        />
+                      )}
+                      {set.symbol && (
+                        <img
+                          src={formatAssetUrl(set.symbol, 'webp')}
+                          alt={`${set.name} symbol`}
+                          style={{
+                            maxWidth: '100px',
+                            height: 'auto',
+                            filter:
+                              'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5))',
+                          }}
+                          loading='lazy'
+                          onError={(e) => {
+                            const img = e.target as HTMLImageElement;
+                            if (img.src.endsWith('.webp')) {
+                              img.src = formatAssetUrl(set.symbol, 'png');
+                            }
+                          }}
+                        />
+                      )}
                     </div>
-                  ))}
-                </div>
-              )}
+
+                    <CardGrid setId={selectedSet} setName={set.name} />
+                  </>
+                );
+              })()}
             </div>
           )}
         </div>
 
-        {selectedSet && (
-          <div
-            style={{
-              marginTop: '3rem',
-              padding: '2rem',
-              backgroundColor: 'rgba(42, 42, 62, 0.6)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '16px',
-              border: '1px solid rgba(100, 108, 255, 0.2)',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-            }}
-          >
-            {(() => {
-              const set = sets.find((s) => s.id === selectedSet);
-              if (!set) return null;
-              console.log({ set });
-              return (
-                <>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '2rem',
-                      marginBottom: '2rem',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    {set.logo && (
-                      <img
-                        src={formatAssetUrl(set.logo, 'webp')}
-                        alt={`${set.name} logo`}
-                        style={{
-                          maxWidth: '250px',
-                          height: 'auto',
-                          filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5))',
-                        }}
-                        loading='lazy'
-                        onError={(e) => {
-                          const img = e.target as HTMLImageElement;
-                          if (img.src.endsWith('.webp')) {
-                            img.src = formatAssetUrl(set.logo, 'png');
-                          }
-                        }}
-                      />
-                    )}
-                    {set.symbol && (
-                      <img
-                        src={formatAssetUrl(set.symbol, 'webp')}
-                        alt={`${set.name} symbol`}
-                        style={{
-                          maxWidth: '100px',
-                          height: 'auto',
-                          filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5))',
-                        }}
-                        loading='lazy'
-                        onError={(e) => {
-                          const img = e.target as HTMLImageElement;
-                          if (img.src.endsWith('.webp')) {
-                            img.src = formatAssetUrl(set.symbol, 'png');
-                          }
-                        }}
-                      />
-                    )}
-                  </div>
-
-                  <CardGrid setId={selectedSet} setName={set.name} />
-                </>
-              );
-            })()}
-          </div>
-        )}
-      </div>
+        {/* Show Hero Section when no set is selected */}
+        {!selectedSet && <HeroSection />}
+      </main>
     </>
   );
 }

@@ -9,16 +9,33 @@ interface HeaderProps {
 
 export const Header = ({ onNavigate, currentView = 'home' }: HeaderProps) => {
   return (
-    <header className='app-header'>
+    <header className='app-header' role='banner'>
       <div className='header-content'>
-        <div onClick={() => onNavigate?.('home')}>
+        <button
+          onClick={() => onNavigate?.('home')}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+          aria-label='Go to home page'
+        >
           <AppLogo />
-        </div>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+        </button>
+        <nav
+          style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}
+          role='navigation'
+          aria-label='Main navigation'
+        >
           {onNavigate && (
             <>
               <button
                 onClick={() => onNavigate('collection')}
+                aria-label='View your collection'
+                aria-current={currentView === 'collection' ? 'page' : undefined}
                 style={{
                   padding: '0.5rem 1rem',
                   backgroundColor:
@@ -43,11 +60,13 @@ export const Header = ({ onNavigate, currentView = 'home' }: HeaderProps) => {
                     currentView === 'collection' ? '#4CAF50' : '#444';
                 }}
               >
-                <BookMarked size={20} />
+                <BookMarked size={20} aria-hidden='true' />
                 Collection
               </button>
               <button
                 onClick={() => onNavigate('wishlist')}
+                aria-label='View your wishlist'
+                aria-current={currentView === 'wishlist' ? 'page' : undefined}
                 style={{
                   padding: '0.5rem 1rem',
                   backgroundColor:
@@ -72,12 +91,12 @@ export const Header = ({ onNavigate, currentView = 'home' }: HeaderProps) => {
                     currentView === 'wishlist' ? '#FF4081' : '#444';
                 }}
               >
-                <Heart size={20} />
+                <Heart size={20} aria-hidden='true' />
                 Wishlist
               </button>
             </>
           )}
-        </div>
+        </nav>
       </div>
     </header>
   );

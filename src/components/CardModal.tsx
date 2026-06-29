@@ -168,10 +168,7 @@ export function CardModal({
                 margin: '0 0 0.5rem 0',
                 fontSize: '1.5rem',
                 fontWeight: '700',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
+                color: '#f8f9fa',
               }}
             >
               {card.name}
@@ -179,7 +176,7 @@ export function CardModal({
             <p
               style={{
                 margin: '0 0 1rem 0',
-                color: '#a0a0c0',
+                color: '#d1d5db',
                 fontSize: '1rem',
               }}
             >

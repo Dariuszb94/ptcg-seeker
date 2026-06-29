@@ -128,7 +128,9 @@ export function CardGrid({ setId, setName }: CardGridProps) {
   }, [setId]);
 
   if (loading) {
-    return <p style={{ color: '#888', marginTop: '1rem' }}>Loading cards...</p>;
+    return (
+      <p style={{ color: '#d1d5db', marginTop: '1rem' }}>Loading cards...</p>
+    );
   }
 
   if (error) {

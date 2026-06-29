@@ -357,7 +357,7 @@ export function Wishlist({ sharedCards, ownerName }: WishlistProps) {
                   <p
                     style={{
                       fontSize: '0.7rem',
-                      color: '#888',
+                      color: '#d1d5db',
                       marginTop: '0.25rem',
                     }}
                   >
