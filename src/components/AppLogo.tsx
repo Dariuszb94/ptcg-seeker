@@ -1,13 +1,39 @@
+import styled from 'styled-components';
+
+const LogoContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+`;
+
+const LogoTextContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+`;
+
+const LogoTitle = styled.span`
+  font-size: 1.4rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
+`;
+
+const LogoSubtitle = styled.span`
+  font-size: 0.7rem;
+  color: #a0a0c0;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  margin-top: -2px;
+`;
+
 export const AppLogo = () => {
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.75rem',
-        cursor: 'pointer',
-      }}
-    >
+    <LogoContainer>
       {/* Simple card icon */}
       <svg
         width='40'
@@ -65,35 +91,11 @@ export const AppLogo = () => {
         </defs>
       </svg>
 
-      {/* App name */}
-      <div
-        style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.2' }}
-      >
-        <span
-          style={{
-            fontSize: '1.4rem',
-            fontWeight: '700',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-            letterSpacing: '-0.5px',
-          }}
-        >
-          PTCG Seeker
-        </span>
-        <span
-          style={{
-            fontSize: '0.7rem',
-            color: '#a0a0c0',
-            fontWeight: '500',
-            letterSpacing: '0.5px',
-            marginTop: '-2px',
-          }}
-        >
-          CARD COLLECTOR
-        </span>
-      </div>
-    </div>
+      <LogoTextContainer>
+        <LogoTitle>PTCG Seeker</LogoTitle>
+        <LogoSubtitle>CARD COLLECTOR</LogoSubtitle>
+      </LogoTextContainer>
+    </LogoContainer>
   );
+};
 };

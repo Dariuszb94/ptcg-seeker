@@ -1,6 +1,157 @@
+import styled from 'styled-components';
 import { createPortal } from 'react-dom';
 import { X, Plus, Check, Heart, Star } from 'lucide-react';
 import { useState } from 'react';
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+  animation: fadeIn 0.3s ease;
+`;
+
+const ModalContent = styled.div`
+  position: relative;
+  max-width: 500px;
+  max-height: 90vh;
+  animation: scaleIn 0.3s ease;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 1001;
+  backdrop-filter: blur(10px);
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+    transform: none;
+  }
+`;
+
+const ModalCard = styled.div`
+  background-color: rgba(42, 42, 62, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid rgba(100, 108, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+`;
+
+const ImageContainer = styled.div`
+  position: relative;
+  width: 100%;
+  padding-bottom: 139.5%;
+  background-color: rgba(100, 108, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+`;
+
+const ImagePlaceholder = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(100, 108, 255, 0.05) 25%,
+    rgba(100, 108, 255, 0.15) 50%,
+    rgba(100, 108, 255, 0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+`;
+
+const CardImage = styled.img<{ $loaded: boolean }>`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  opacity: ${(props) => (props.$loaded ? 1 : 0)};
+  transition: opacity 0.3s ease;
+`;
+
+const CardInfo = styled.div`
+  margin-top: 1rem;
+  text-align: center;
+`;
+
+const CardTitle = styled.h3`
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #f8f9fa;
+`;
+
+const CardLocalId = styled.p`
+  margin: 0 0 1rem 0;
+  color: #d1d5db;
+  font-size: 1rem;
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
+`;
+
+const ModalActionButton = styled.button<{
+  $isActive: boolean;
+  $activeColor: string;
+}>`
+  background-color: ${(props) =>
+    props.$isActive ? `${props.$activeColor}e6` : 'rgba(42, 42, 62, 0.9)'};
+  color: white;
+  border: 2px solid
+    ${(props) =>
+      props.$isActive ? props.$activeColor : 'rgba(100, 108, 255, 0.3)'};
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  }
+`;
 
 interface CardModalProps {
   card: {
@@ -33,201 +184,48 @@ export function CardModal({
   const imageLoaded = imageLoadedMap.get(card.id) ?? false;
 
   return createPortal(
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.85)',
-        backdropFilter: 'blur(8px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-        padding: '2rem',
-        animation: 'fadeIn 0.3s ease',
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          position: 'relative',
-          maxWidth: '500px',
-          maxHeight: '90vh',
-          animation: 'scaleIn 0.3s ease',
-        }}
-      >
-        <button
-          onClick={onClose}
-          style={{
-            position: 'absolute',
-            top: '0.5rem',
-            right: '0.5rem',
-            backgroundColor: 'rgba(0, 0, 0, 0.6)',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            width: '32px',
-            height: '32px',
-            minWidth: '32px',
-            minHeight: '32px',
-            padding: 0,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.2s ease',
-            zIndex: 1001,
-            backdropFilter: 'blur(10px)',
-            flexShrink: 0,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
-          }}
-          title='Close (ESC)'
-        >
+    <ModalOverlay onClick={onClose}>
+      <ModalContent onClick={(e) => e.stopPropagation()}>
+        <CloseButton onClick={onClose} title='Close (ESC)'>
           <X size={20} strokeWidth={2} />
-        </button>
+        </CloseButton>
 
-        <div
-          style={{
-            backgroundColor: 'rgba(42, 42, 62, 0.95)',
-            backdropFilter: 'blur(20px)',
-            borderRadius: '16px',
-            padding: '1.5rem',
-            border: '1px solid rgba(100, 108, 255, 0.3)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
-          }}
-        >
-          <div
-            style={{
-              position: 'relative',
-              width: '100%',
-              paddingBottom: '139.5%', // Pokemon card aspect ratio
-              backgroundColor: 'rgba(100, 108, 255, 0.05)',
-              borderRadius: '12px',
-              overflow: 'hidden',
-            }}
-          >
-            {!imageLoaded && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background:
-                    'linear-gradient(90deg, rgba(100, 108, 255, 0.05) 25%, rgba(100, 108, 255, 0.15) 50%, rgba(100, 108, 255, 0.05) 75%)',
-                  backgroundSize: '200% 100%',
-                  animation: 'shimmer 1.5s infinite',
-                }}
-              />
-            )}
-            <img
+        <ModalCard>
+          <ImageContainer>
+            {!imageLoaded && <ImagePlaceholder />}
+            <CardImage
               src={card.image.replace('/low.webp', '/high.webp')}
               alt={card.name}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-                borderRadius: '12px',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
-                opacity: imageLoaded ? 1 : 0,
-                transition: 'opacity 0.3s ease',
-              }}
+              $loaded={imageLoaded}
               onLoad={() => {
                 setImageLoadedMap((prev) => new Map(prev).set(card.id, true));
               }}
               onError={(e) => {
                 const img = e.target as HTMLImageElement;
-                // Try PNG if webp fails
                 if (img.src.includes('/high.webp')) {
                   img.src = img.src.replace('/high.webp', '/high.png');
                 } else if (img.src.includes('/high.png')) {
-                  // Fallback to low quality
                   img.src = img.src.replace('/high.png', '/low.webp');
                 } else if (img.src.endsWith('.webp')) {
                   img.src = img.src.replace('.webp', '.png');
                 }
               }}
             />
-          </div>
-          <div style={{ marginTop: '1rem', textAlign: 'center' }}>
-            <h3
-              style={{
-                margin: '0 0 0.5rem 0',
-                fontSize: '1.5rem',
-                fontWeight: '700',
-                color: '#f8f9fa',
-              }}
-            >
-              {card.name}
-            </h3>
-            <p
-              style={{
-                margin: '0 0 1rem 0',
-                color: '#d1d5db',
-                fontSize: '1rem',
-              }}
-            >
-              #{card.localId}
-            </p>
+          </ImageContainer>
+          <CardInfo>
+            <CardTitle>{card.name}</CardTitle>
+            <CardLocalId>#{card.localId}</CardLocalId>
 
-            {/* Collection and Wishlist buttons */}
             {(onToggleCollection || onToggleWishlist) && (
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '1rem',
-                  justifyContent: 'center',
-                  marginTop: '1rem',
-                }}
-              >
+              <ButtonGroup>
                 {onToggleCollection && (
-                  <button
+                  <ModalActionButton
                     onClick={(e) => {
                       e.stopPropagation();
                       onToggleCollection();
                     }}
-                    style={{
-                      backgroundColor: inCollection
-                        ? 'rgba(76, 175, 80, 0.9)'
-                        : 'rgba(42, 42, 62, 0.9)',
-                      color: 'white',
-                      border: inCollection
-                        ? '2px solid #4CAF50'
-                        : '2px solid rgba(100, 108, 255, 0.3)',
-                      borderRadius: '12px',
-                      padding: '0.75rem 1.5rem',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      transition: 'all 0.3s ease',
-                      fontSize: '1rem',
-                      fontWeight: '600',
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow =
-                        '0 6px 16px rgba(0, 0, 0, 0.4)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow =
-                        '0 4px 12px rgba(0, 0, 0, 0.3)';
-                    }}
+                    $isActive={inCollection}
+                    $activeColor='#4CAF50'
                   >
                     {inCollection ? (
                       <>
@@ -240,44 +238,17 @@ export function CardModal({
                         Add to Collection
                       </>
                     )}
-                  </button>
+                  </ModalActionButton>
                 )}
 
                 {onToggleWishlist && (
-                  <button
+                  <ModalActionButton
                     onClick={(e) => {
                       e.stopPropagation();
                       onToggleWishlist();
                     }}
-                    style={{
-                      backgroundColor: inWishlist
-                        ? 'rgba(255, 64, 129, 0.9)'
-                        : 'rgba(42, 42, 62, 0.9)',
-                      color: 'white',
-                      border: inWishlist
-                        ? '2px solid #FF4081'
-                        : '2px solid rgba(100, 108, 255, 0.3)',
-                      borderRadius: '12px',
-                      padding: '0.75rem 1.5rem',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      transition: 'all 0.3s ease',
-                      fontSize: '1rem',
-                      fontWeight: '600',
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow =
-                        '0 6px 16px rgba(0, 0, 0, 0.4)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow =
-                        '0 4px 12px rgba(0, 0, 0, 0.3)';
-                    }}
+                    $isActive={inWishlist}
+                    $activeColor='#FF4081'
                   >
                     {inWishlist ? (
                       <>
@@ -290,14 +261,14 @@ export function CardModal({
                         Add to Wishlist
                       </>
                     )}
-                  </button>
+                  </ModalActionButton>
                 )}
-              </div>
+              </ButtonGroup>
             )}
-          </div>
-        </div>
-      </div>
-    </div>,
+          </CardInfo>
+        </ModalCard>
+      </ModalContent>
+    </ModalOverlay>,
     document.body,
   );
 }

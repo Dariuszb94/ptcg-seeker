@@ -1,8 +1,27 @@
 import { useState, useEffect, useMemo } from 'react';
+import styled from 'styled-components';
 import { storageService, type StoredCard } from '../services/storage';
 import { X } from 'lucide-react';
-import { cardGridStyles } from '../styles/cardStyles';
 import { CardModal } from './CardModal';
+import {
+  CardGridContainer,
+  CardGridTitle,
+  CardGrid,
+  CardItem,
+  CardImageContainer,
+  CardImagePlaceholder,
+  CardImage,
+  CardName,
+  CardId,
+  CardSetName,
+  RemoveButton,
+  EmptyState,
+} from '../styles/SharedStyledComponents';
+
+// Local styled components specific to Collection
+const CollectionTitle = styled(CardGridTitle)`
+  font-size: 2.2rem;
+`;
 
 export function Collection() {
   const [cards, setCards] = useState<StoredCard[]>(() =>
@@ -93,66 +112,30 @@ export function Collection() {
         }
         onToggleWishlist={selectedCard ? handleToggleWishlist : undefined}
       />
-      <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
-        <h2 style={{ ...cardGridStyles.title, fontSize: '2.2rem' }}>
+      <CardGridContainer>
+        <CollectionTitle>
           My Collection ({sortedCards.length} cards)
-        </h2>
+        </CollectionTitle>
 
         {sortedCards.length === 0 ? (
-          <div style={cardGridStyles.emptyState}>
+          <EmptyState>
             <p>Your collection is empty. Start adding cards from the sets!</p>
-          </div>
+          </EmptyState>
         ) : (
-          <div style={cardGridStyles.grid}>
+          <CardGrid>
             {sortedCards.map((card) => (
-              <div
+              <CardItem
                 key={card.id}
-                style={cardGridStyles.card}
                 onMouseEnter={() => setHoveredCardId(card.id)}
                 onMouseLeave={() => setHoveredCardId(null)}
               >
-                <div
-                  style={{
-                    position: 'relative',
-                    width: '100%',
-                    paddingBottom: '139.5%', // Pokemon card aspect ratio
-                    backgroundColor: 'rgba(100, 108, 255, 0.05)',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {!loadedImages.has(card.id) && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background:
-                          'linear-gradient(90deg, rgba(100, 108, 255, 0.05) 25%, rgba(100, 108, 255, 0.15) 50%, rgba(100, 108, 255, 0.05) 75%)',
-                        backgroundSize: '200% 100%',
-                        animation: 'shimmer 1.5s infinite',
-                      }}
-                    />
-                  )}
-                  <img
+                <CardImageContainer>
+                  {!loadedImages.has(card.id) && <CardImagePlaceholder />}
+                  <CardImage
                     src={card.image}
                     alt={card.name}
                     loading='lazy'
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'contain',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
-                      cursor: 'pointer',
-                      opacity: loadedImages.has(card.id) ? 1 : 0,
-                      transition: 'opacity 0.3s ease',
-                    }}
+                    $loaded={loadedImages.has(card.id)}
                     onClick={() => setSelectedCard(card)}
                     onLoad={() => {
                       setLoadedImages((prev) => new Set([...prev, card.id]));
@@ -164,27 +147,14 @@ export function Collection() {
                       }
                     }}
                   />
-                </div>
-                <p style={cardGridStyles.cardName}>{card.name}</p>
-                <p style={cardGridStyles.cardId}>#{card.localId}</p>
-                {card.setName && (
-                  <p
-                    style={{
-                      fontSize: '0.7rem',
-                      color: '#d1d5db',
-                      marginTop: '0.25rem',
-                    }}
-                  >
-                    {card.setName}
-                  </p>
-                )}
-                <button
+                </CardImageContainer>
+                <CardName>{card.name}</CardName>
+                <CardId>#{card.localId}</CardId>
+                {card.setName && <CardSetName>{card.setName}</CardSetName>}
+                <RemoveButton
                   className='remove-button'
                   onClick={() => handleRemove(card.id)}
-                  style={cardGridStyles.getRemoveButton(
-                    isMobile,
-                    hoveredCardId === card.id,
-                  )}
+                  $isMobile={isMobile}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = '#cc0000';
                     if (!isMobile) {
@@ -202,12 +172,12 @@ export function Collection() {
                 >
                   <X size={16} strokeWidth={2} />
                   {isMobile && <span>Remove</span>}
-                </button>
-              </div>
+                </RemoveButton>
+              </CardItem>
             ))}
-          </div>
+          </CardGrid>
         )}
-      </div>
+      </CardGridContainer>
     </>
   );
 }

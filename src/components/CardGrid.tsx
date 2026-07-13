@@ -2,7 +2,21 @@ import { useState, useEffect } from 'react';
 import { pokemonTcgApi, formatImageUrl } from '../services/pokemon-tcg-api';
 import { storageService, type StoredCard } from '../services/storage';
 import { Heart, Plus, Check, Star } from 'lucide-react';
-import { cardGridStyles } from '../styles/cardStyles';
+import {
+  CardGridContainer,
+  CardGridTitle,
+  CardGrid,
+  CardItem,
+  CardImageContainer,
+  CardImagePlaceholder,
+  CardImage,
+  CardName,
+  CardId,
+  ButtonContainer,
+  ActionButton,
+  LoadingText,
+  ErrorBox,
+} from '../styles/SharedStyledComponents';
 import { CardModal } from './CardModal';
 
 interface CardSummary {
@@ -107,8 +121,6 @@ export function CardGrid({ setId, setName }: CardGridProps) {
         setLoading(true);
         setError(null);
         const cardsData = await pokemonTcgApi.getCardsFromSet(setId);
-        // Map to ensure we have the required CardSummary structure
-        // TCGdex images need format: {imageUrl}/low.webp or {imageUrl}/high.webp
         const cardSummaries = cardsData.map((card) => ({
           id: card.id,
           localId: card.localId,
@@ -128,25 +140,11 @@ export function CardGrid({ setId, setName }: CardGridProps) {
   }, [setId]);
 
   if (loading) {
-    return (
-      <p style={{ color: '#d1d5db', marginTop: '1rem' }}>Loading cards...</p>
-    );
+    return <LoadingText>Loading cards...</LoadingText>;
   }
 
   if (error) {
-    return (
-      <div
-        style={{
-          padding: '1rem',
-          backgroundColor: '#ff000020',
-          borderRadius: '4px',
-          color: '#ff6b6b',
-          marginTop: '1rem',
-        }}
-      >
-        <p>Error: {error}</p>
-      </div>
-    );
+    return <ErrorBox><p>Error: {error}</p></ErrorBox>;
   }
 
   return (
@@ -179,50 +177,35 @@ export function CardGrid({ setId, setName }: CardGridProps) {
             : undefined
         }
       />
-      <div style={cardGridStyles.container}>
-        <h3 style={cardGridStyles.title}>Cards in this Set ({cards.length})</h3>
-        <div style={cardGridStyles.grid}>
+      <CardGridContainer>
+        <CardGridTitle>Cards in this Set ({cards.length})</CardGridTitle>
+        <CardGrid>
           {cards.map((card) => {
             const inCollection = collectionIds.has(card.id);
             const inWishlist = wishlistIds.has(card.id);
 
             return (
-              <div
+              <CardItem
                 key={card.id}
-                style={cardGridStyles.card}
                 onMouseEnter={() => setHoveredCardId(card.id)}
                 onMouseLeave={() => setHoveredCardId(null)}
               >
-                <div
-                  className='card-buttons'
+                <ButtonContainer 
+                  className="card-buttons"
+                  $isMobile={isMobile}
                   style={{
-                    ...cardGridStyles.getButtonContainer(isMobile),
-                    opacity: isMobile ? 1 : hoveredCardId === card.id ? 1 : 0,
+                    opacity: isMobile ? 1 : hoveredCardId === card.id ? 1 : 0
                   }}
                 >
-                  <button
+                  <ActionButton
                     onClick={() =>
                       inCollection
                         ? handleRemoveFromCollection(card.id)
                         : handleAddToCollection(card)
                     }
-                    style={cardGridStyles.getMobileButton(
-                      inCollection,
-                      '#4CAF50',
-                      isMobile,
-                    )}
-                    onMouseEnter={(e) => {
-                      if (!inCollection) {
-                        e.currentTarget.style.backgroundColor =
-                          'rgba(76, 175, 80, 0.9)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!inCollection) {
-                        e.currentTarget.style.backgroundColor =
-                          'rgba(0, 0, 0, 0.7)';
-                      }
-                    }}
+                    $isActive={inCollection}
+                    $activeColor='#4CAF50'
+                    $isMobile={isMobile}
                     title={
                       inCollection
                         ? 'Remove from collection'
@@ -234,31 +217,17 @@ export function CardGrid({ setId, setName }: CardGridProps) {
                     ) : (
                       <Plus size={isMobile ? 20 : 24} />
                     )}
-                  </button>
+                  </ActionButton>
 
-                  <button
+                  <ActionButton
                     onClick={() =>
                       inWishlist
                         ? handleRemoveFromWishlist(card.id)
                         : handleAddToWishlist(card)
                     }
-                    style={cardGridStyles.getMobileButton(
-                      inWishlist,
-                      '#FF4081',
-                      isMobile,
-                    )}
-                    onMouseEnter={(e) => {
-                      if (!inWishlist) {
-                        e.currentTarget.style.backgroundColor =
-                          'rgba(255, 64, 129, 0.9)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!inWishlist) {
-                        e.currentTarget.style.backgroundColor =
-                          'rgba(0, 0, 0, 0.7)';
-                      }
-                    }}
+                    $isActive={inWishlist}
+                    $activeColor='#FF4081'
+                    $isMobile={isMobile}
                     title={
                       inWishlist ? 'Remove from wishlist' : 'Add to wishlist'
                     }
@@ -268,51 +237,16 @@ export function CardGrid({ setId, setName }: CardGridProps) {
                     ) : (
                       <Heart size={isMobile ? 20 : 24} />
                     )}
-                  </button>
-                </div>
+                  </ActionButton>
+                </ButtonContainer>
 
-                <div
-                  style={{
-                    position: 'relative',
-                    width: '100%',
-                    paddingBottom: '139.5%', // Pokemon card aspect ratio (height/width * 100)
-                    backgroundColor: 'rgba(100, 108, 255, 0.05)',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {!loadedImages.has(card.id) && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background:
-                          'linear-gradient(90deg, rgba(100, 108, 255, 0.05) 25%, rgba(100, 108, 255, 0.15) 50%, rgba(100, 108, 255, 0.05) 75%)',
-                        backgroundSize: '200% 100%',
-                        animation: 'shimmer 1.5s infinite',
-                      }}
-                    />
-                  )}
-                  <img
+                <CardImageContainer>
+                  {!loadedImages.has(card.id) && <CardImagePlaceholder />}
+                  <CardImage
                     src={card.image}
                     alt={card.name}
                     loading='lazy'
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'contain',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
-                      cursor: 'pointer',
-                      opacity: loadedImages.has(card.id) ? 1 : 0,
-                      transition: 'opacity 0.3s ease',
-                    }}
+                    $loaded={loadedImages.has(card.id)}
                     onClick={() => setSelectedCard(card)}
                     onLoad={() => {
                       setLoadedImages((prev) => new Set([...prev, card.id]));
@@ -324,14 +258,14 @@ export function CardGrid({ setId, setName }: CardGridProps) {
                       }
                     }}
                   />
-                </div>
-                <p style={cardGridStyles.cardName}>{card.name}</p>
-                <p style={cardGridStyles.cardId}>#{card.localId}</p>
-              </div>
+                </CardImageContainer>
+                <CardName>{card.name}</CardName>
+                <CardId>#{card.localId}</CardId>
+              </CardItem>
             );
           })}
-        </div>
-      </div>
+        </CardGrid>
+      </CardGridContainer>
     </>
   );
 }

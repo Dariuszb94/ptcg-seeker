@@ -1,9 +1,91 @@
 import { useState, useEffect, useMemo } from 'react';
+import styled from 'styled-components';
 import { storageService, type StoredCard } from '../services/storage';
 import { pokemonTcgApi, formatImageUrl } from '../services/pokemon-tcg-api';
 import { X, Share2, Check } from 'lucide-react';
-import { cardGridStyles } from '../styles/cardStyles';
 import { CardModal } from './CardModal';
+import {
+  CardGridContainer,
+  CardGridTitle,
+  CardGrid,
+  CardItem,
+  CardImageContainer,
+  CardImagePlaceholder,
+  CardImage,
+  CardName,
+  CardId,
+  CardSetName,
+  RemoveButton,
+  EmptyState,
+} from '../styles/SharedStyledComponents';
+
+// Local styled components specific to Wishlist
+const HeaderContainer = styled.div<{ $isMobile?: boolean }>`
+  display: flex;
+  flex-direction: ${(props) => (props.$isMobile ? 'column' : 'row')};
+  justify-content: space-between;
+  align-items: ${(props) => (props.$isMobile ? 'stretch' : 'center')};
+  margin-bottom: 1.5rem;
+  gap: ${(props) => (props.$isMobile ? '1rem' : 0)};
+`;
+
+const WishlistTitle = styled(CardGridTitle)`
+  font-size: 2.2rem;
+  margin: 0;
+  text-align: ${(props: { $isMobile?: boolean }) =>
+    props.$isMobile ? 'center' : 'left'};
+`;
+
+const LoadingSpan = styled.span`
+  font-size: 1rem;
+  color: #a0a0c0;
+  margin-left: 1rem;
+`;
+
+const ShareButton = styled.button<{ $isMobile?: boolean; $copied?: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: ${(props) => (props.$copied ? '#10b981' : '#3b82f6')};
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  width: ${(props) => (props.$isMobile ? '100%' : 'auto')};
+
+  &:hover {
+    background-color: ${(props) => (props.$copied ? '#10b981' : '#2563eb')};
+    transform: ${(props) => (props.$copied ? 'none' : 'translateY(-2px)')};
+    box-shadow: ${(props) =>
+      props.$copied
+        ? '0 2px 8px rgba(59, 130, 246, 0.3)'
+        : '0 4px 12px rgba(59, 130, 246, 0.4)'};
+  }
+`;
+
+const WarningBanner = styled.div`
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  color: #856404;
+
+  strong {
+    display: block;
+  }
+
+  p {
+    margin: 0.5rem 0 0 0;
+  }
+`;
 
 interface WishlistProps {
   sharedCards?: StoredCard[] | null;
@@ -171,79 +253,22 @@ export function Wishlist({ sharedCards, ownerName }: WishlistProps) {
           selectedCard && !isViewingShared ? handleToggleWishlist : undefined
         }
       />
-      <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: isMobile ? 'column' : 'row',
-            justifyContent: 'space-between',
-            alignItems: isMobile ? 'stretch' : 'center',
-            marginBottom: '1.5rem',
-            gap: isMobile ? '1rem' : 0,
-          }}
-        >
-          <h2
-            style={{
-              ...cardGridStyles.title,
-              fontSize: '2.2rem',
-              margin: 0,
-              textAlign: isMobile ? 'center' : 'left',
-            }}
-          >
+      <CardGridContainer>
+        <HeaderContainer $isMobile={isMobile}>
+          <WishlistTitle $isMobile={isMobile}>
             {isViewingShared
               ? `${ownerName ? ownerName + "'s" : 'Shared'} Wishlist (${
                   cards.length
                 } cards)`
               : `My Wishlist (${cards.length} cards)`}
-            {loadingShared && (
-              <span
-                style={{
-                  fontSize: '1rem',
-                  color: '#a0a0c0',
-                  marginLeft: '1rem',
-                }}
-              >
-                Loading cards...
-              </span>
-            )}
-          </h2>
+            {loadingShared && <LoadingSpan>Loading cards...</LoadingSpan>}
+          </WishlistTitle>
 
           {!isViewingShared && cards.length > 0 && (
-            <button
+            <ShareButton
               onClick={handleShare}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem',
-                padding: '0.75rem 1.5rem',
-                backgroundColor: copied ? '#10b981' : '#3b82f6',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                fontWeight: 500,
-                transition: 'all 0.3s ease',
-                boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)',
-                width: isMobile ? '100%' : 'auto',
-              }}
-              onMouseEnter={(e) => {
-                if (!copied) {
-                  e.currentTarget.style.backgroundColor = '#2563eb';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow =
-                    '0 4px 12px rgba(59, 130, 246, 0.4)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!copied) {
-                  e.currentTarget.style.backgroundColor = '#3b82f6';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow =
-                    '0 2px 8px rgba(59, 130, 246, 0.3)';
-                }
-              }}
+              $isMobile={isMobile}
+              $copied={copied}
             >
               {copied ? (
                 <>
@@ -256,89 +281,43 @@ export function Wishlist({ sharedCards, ownerName }: WishlistProps) {
                   Share Wishlist
                 </>
               )}
-            </button>
+            </ShareButton>
           )}
-        </div>
+        </HeaderContainer>
 
         {isViewingShared && (
-          <div
-            style={{
-              backgroundColor: '#fff3cd',
-              border: '1px solid #ffc107',
-              borderRadius: '8px',
-              padding: '1rem',
-              marginBottom: '1.5rem',
-              fontSize: '0.95rem',
-              color: '#856404',
-            }}
-          >
+          <WarningBanner>
             <strong>👀 Viewing a shared wishlist</strong>
-            <p style={{ margin: '0.5rem 0 0 0' }}>
+            <p>
               You can add these cards to your own collection or wishlist. Your
               changes won't affect the shared wishlist.
             </p>
-          </div>
+          </WarningBanner>
         )}
 
         {cards.length === 0 ? (
-          <div style={cardGridStyles.emptyState}>
+          <EmptyState>
             <p>
               {isViewingShared
                 ? 'This wishlist is empty.'
                 : 'Your wishlist is empty. Start adding cards you want to collect!'}
             </p>
-          </div>
+          </EmptyState>
         ) : (
-          <div style={cardGridStyles.grid}>
+          <CardGrid>
             {cards.map((card) => (
-              <div
+              <CardItem
                 key={card.id}
-                style={cardGridStyles.card}
                 onMouseEnter={() => setHoveredCardId(card.id)}
                 onMouseLeave={() => setHoveredCardId(null)}
               >
-                <div
-                  style={{
-                    position: 'relative',
-                    width: '100%',
-                    paddingBottom: '139.5%', // Pokemon card aspect ratio
-                    backgroundColor: 'rgba(100, 108, 255, 0.05)',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {!loadedImages.has(card.id) && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background:
-                          'linear-gradient(90deg, rgba(100, 108, 255, 0.05) 25%, rgba(100, 108, 255, 0.15) 50%, rgba(100, 108, 255, 0.05) 75%)',
-                        backgroundSize: '200% 100%',
-                        animation: 'shimmer 1.5s infinite',
-                      }}
-                    />
-                  )}
-                  <img
+                <CardImageContainer>
+                  {!loadedImages.has(card.id) && <CardImagePlaceholder />}
+                  <CardImage
                     src={card.image}
                     alt={card.name}
                     loading='lazy'
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'contain',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
-                      cursor: 'pointer',
-                      opacity: loadedImages.has(card.id) ? 1 : 0,
-                      transition: 'opacity 0.3s ease',
-                    }}
+                    $loaded={loadedImages.has(card.id)}
                     onClick={() => setSelectedCard(card)}
                     onLoad={() => {
                       setLoadedImages((prev) => new Set([...prev, card.id]));
@@ -350,28 +329,15 @@ export function Wishlist({ sharedCards, ownerName }: WishlistProps) {
                       }
                     }}
                   />
-                </div>
-                <p style={cardGridStyles.cardName}>{card.name}</p>
-                <p style={cardGridStyles.cardId}>#{card.localId}</p>
-                {card.setName && (
-                  <p
-                    style={{
-                      fontSize: '0.7rem',
-                      color: '#d1d5db',
-                      marginTop: '0.25rem',
-                    }}
-                  >
-                    {card.setName}
-                  </p>
-                )}
+                </CardImageContainer>
+                <CardName>{card.name}</CardName>
+                <CardId>#{card.localId}</CardId>
+                {card.setName && <CardSetName>{card.setName}</CardSetName>}
                 {!isViewingShared && (
-                  <button
+                  <RemoveButton
                     className='remove-button'
                     onClick={() => handleRemove(card.id)}
-                    style={cardGridStyles.getRemoveButton(
-                      isMobile,
-                      hoveredCardId === card.id,
-                    )}
+                    $isMobile={isMobile}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = '#cc0000';
                       if (!isMobile) {
@@ -389,13 +355,13 @@ export function Wishlist({ sharedCards, ownerName }: WishlistProps) {
                   >
                     <X size={16} strokeWidth={2} />
                     {isMobile && <span>Remove</span>}
-                  </button>
+                  </RemoveButton>
                 )}
-              </div>
+              </CardItem>
             ))}
-          </div>
+          </CardGrid>
         )}
-      </div>
+      </CardGridContainer>
     </>
   );
 }
