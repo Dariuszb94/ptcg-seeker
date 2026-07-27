@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useReducer } from 'react';
 import styled from 'styled-components';
 import { storageService, type StoredCard } from '../services/storage';
 import { pokemonTcgApi, formatImageUrl } from '../services/pokemon-tcg-api';
@@ -92,21 +92,94 @@ interface WishlistProps {
   ownerName?: string;
 }
 
+type WishlistState = {
+  localWishlist: StoredCard[];
+  loadedSharedCards: StoredCard[];
+  loadingShared: boolean;
+  isMobile: boolean;
+  selectedCard: StoredCard | null;
+  hoveredCardId: string | null;
+  copied: boolean;
+  loadedImages: Set<string>;
+};
+
+type WishlistAction =
+  | { type: 'SET_LOCAL_WISHLIST'; payload: StoredCard[] }
+  | { type: 'SET_LOADED_SHARED_CARDS'; payload: StoredCard[] }
+  | { type: 'SET_LOADING_SHARED'; payload: boolean }
+  | { type: 'SET_IS_MOBILE'; payload: boolean }
+  | { type: 'SET_SELECTED_CARD'; payload: StoredCard | null }
+  | { type: 'SET_HOVERED_CARD'; payload: string | null }
+  | { type: 'SET_COPIED'; payload: boolean }
+  | { type: 'ADD_LOADED_IMAGE'; payload: string }
+  | { type: 'REMOVE_CARD'; payload: string }
+  | { type: 'UPDATE_SELECTED_CARD' };
+
+function wishlistReducer(
+  state: WishlistState,
+  action: WishlistAction,
+): WishlistState {
+  switch (action.type) {
+    case 'SET_LOCAL_WISHLIST':
+      return { ...state, localWishlist: action.payload };
+    case 'SET_LOADED_SHARED_CARDS':
+      return { ...state, loadedSharedCards: action.payload };
+    case 'SET_LOADING_SHARED':
+      return { ...state, loadingShared: action.payload };
+    case 'SET_IS_MOBILE':
+      return { ...state, isMobile: action.payload };
+    case 'SET_SELECTED_CARD':
+      return { ...state, selectedCard: action.payload };
+    case 'SET_HOVERED_CARD':
+      return { ...state, hoveredCardId: action.payload };
+    case 'SET_COPIED':
+      return { ...state, copied: action.payload };
+    case 'ADD_LOADED_IMAGE':
+      return {
+        ...state,
+        loadedImages: new Set([...state.loadedImages, action.payload]),
+      };
+    case 'REMOVE_CARD':
+      const newLocalWishlist = state.localWishlist.filter(
+        (card) => card.id !== action.payload,
+      );
+      const newSelectedCard =
+        state.selectedCard?.id === action.payload ? null : state.selectedCard;
+      return {
+        ...state,
+        localWishlist: newLocalWishlist,
+        selectedCard: newSelectedCard,
+      };
+    case 'UPDATE_SELECTED_CARD':
+      return state.selectedCard
+        ? {
+            ...state,
+            selectedCard: { ...state.selectedCard },
+          }
+        : state;
+    default:
+      return state;
+  }
+}
+
 export function Wishlist({ sharedCards, ownerName }: WishlistProps) {
   const isViewingShared = sharedCards !== undefined && sharedCards !== null;
 
-  const [localWishlist, setLocalWishlist] = useState<StoredCard[]>(() =>
-    storageService.getWishlist(),
-  );
-
-  const [loadedSharedCards, setLoadedSharedCards] = useState<StoredCard[]>([]);
-  const [loadingShared, setLoadingShared] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [state, dispatch] = useReducer(wishlistReducer, {
+    localWishlist: storageService.getWishlist(),
+    loadedSharedCards: [],
+    loadingShared: false,
+    isMobile: false,
+    selectedCard: null,
+    hoveredCardId: null,
+    copied: false,
+    loadedImages: new Set<string>(),
+  });
 
   // Detect mobile screen size
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 800);
+      dispatch({ type: 'SET_IS_MOBILE', payload: window.innerWidth < 800 });
     };
 
     checkMobile();
@@ -118,7 +191,7 @@ export function Wishlist({ sharedCards, ownerName }: WishlistProps) {
   useEffect(() => {
     if (isViewingShared && sharedCards && sharedCards.length > 0) {
       const fetchCardDetails = async () => {
-        setLoadingShared(true);
+        dispatch({ type: 'SET_LOADING_SHARED', payload: true });
         try {
           const detailedCards = await Promise.all(
             sharedCards.map(async (card) => {
@@ -145,11 +218,11 @@ export function Wishlist({ sharedCards, ownerName }: WishlistProps) {
               }
             }),
           );
-          setLoadedSharedCards(detailedCards);
+          dispatch({ type: 'SET_LOADED_SHARED_CARDS', payload: detailedCards });
         } catch (err) {
           console.error('Failed to load shared cards:', err);
         } finally {
-          setLoadingShared(false);
+          dispatch({ type: 'SET_LOADING_SHARED', payload: false });
         }
       };
 
@@ -159,44 +232,36 @@ export function Wishlist({ sharedCards, ownerName }: WishlistProps) {
 
   // Use memoized value for cards based on viewing mode
   const cards = useMemo(() => {
-    return isViewingShared ? loadedSharedCards : localWishlist;
-  }, [isViewingShared, loadedSharedCards, localWishlist]);
-
-  const [selectedCard, setSelectedCard] = useState<StoredCard | null>(null);
-  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
+    return isViewingShared ? state.loadedSharedCards : state.localWishlist;
+  }, [isViewingShared, state.loadedSharedCards, state.localWishlist]);
 
   const handleRemove = (cardId: string) => {
     if (isViewingShared) return; // Can't remove from shared wishlist
     storageService.removeFromWishlist(cardId);
-    const wishlist = storageService.getWishlist();
-    setLocalWishlist(wishlist);
-    // Close modal if the removed card is currently selected
-    if (selectedCard && selectedCard.id === cardId) {
-      setSelectedCard(null);
-    }
+    dispatch({ type: 'REMOVE_CARD', payload: cardId });
   };
 
   const handleToggleCollection = () => {
-    if (!selectedCard) return;
+    if (!state.selectedCard) return;
 
     const collection = storageService.getCollection();
-    const inCollection = collection.some((c) => c.id === selectedCard.id);
+    const inCollection = collection.some(
+      (c) => c.id === state.selectedCard!.id,
+    );
 
     if (inCollection) {
-      storageService.removeFromCollection(selectedCard.id);
+      storageService.removeFromCollection(state.selectedCard.id);
     } else {
-      storageService.addToCollection(selectedCard);
+      storageService.addToCollection(state.selectedCard);
     }
     // Force re-render by creating new card object
-    setSelectedCard({ ...selectedCard });
+    dispatch({ type: 'UPDATE_SELECTED_CARD' });
   };
 
   const handleToggleWishlist = () => {
-    if (!selectedCard || isViewingShared) return;
+    if (!state.selectedCard || isViewingShared) return;
 
-    handleRemove(selectedCard.id);
+    handleRemove(state.selectedCard.id);
   };
 
   const handleShare = async () => {
@@ -207,8 +272,8 @@ export function Wishlist({ sharedCards, ownerName }: WishlistProps) {
 
     try {
       await navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      dispatch({ type: 'SET_COPIED', payload: true });
+      setTimeout(() => dispatch({ type: 'SET_COPIED', payload: false }), 2000);
     } catch (err) {
       console.error('Failed to copy:', err);
       // Fallback: show the URL in a prompt
@@ -220,7 +285,7 @@ export function Wishlist({ sharedCards, ownerName }: WishlistProps) {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setSelectedCard(null);
+        dispatch({ type: 'SET_SELECTED_CARD', payload: null });
       }
     };
     window.addEventListener('keydown', handleEscape);
@@ -230,47 +295,51 @@ export function Wishlist({ sharedCards, ownerName }: WishlistProps) {
   return (
     <>
       <CardModal
-        card={selectedCard}
-        onClose={() => setSelectedCard(null)}
+        card={state.selectedCard}
+        onClose={() => dispatch({ type: 'SET_SELECTED_CARD', payload: null })}
         inCollection={
-          selectedCard
+          state.selectedCard
             ? storageService
                 .getCollection()
-                .some((c) => c.id === selectedCard.id)
+                .some((c) => c.id === state.selectedCard!.id)
             : false
         }
         inWishlist={
           isViewingShared
             ? false
-            : selectedCard
+            : state.selectedCard
               ? storageService
                   .getWishlist()
-                  .some((c) => c.id === selectedCard.id)
+                  .some((c) => c.id === state.selectedCard!.id)
               : false
         }
-        onToggleCollection={selectedCard ? handleToggleCollection : undefined}
+        onToggleCollection={
+          state.selectedCard ? handleToggleCollection : undefined
+        }
         onToggleWishlist={
-          selectedCard && !isViewingShared ? handleToggleWishlist : undefined
+          state.selectedCard && !isViewingShared
+            ? handleToggleWishlist
+            : undefined
         }
       />
       <CardGridContainer>
-        <HeaderContainer $isMobile={isMobile}>
-          <WishlistTitle $isMobile={isMobile}>
+        <HeaderContainer $isMobile={state.isMobile}>
+          <WishlistTitle $isMobile={state.isMobile}>
             {isViewingShared
               ? `${ownerName ? ownerName + "'s" : 'Shared'} Wishlist (${
                   cards.length
                 } cards)`
               : `My Wishlist (${cards.length} cards)`}
-            {loadingShared && <LoadingSpan>Loading cards...</LoadingSpan>}
+            {state.loadingShared && <LoadingSpan>Loading cards...</LoadingSpan>}
           </WishlistTitle>
 
           {!isViewingShared && cards.length > 0 && (
             <ShareButton
               onClick={handleShare}
-              $isMobile={isMobile}
-              $copied={copied}
+              $isMobile={state.isMobile}
+              $copied={state.copied}
             >
-              {copied ? (
+              {state.copied ? (
                 <>
                   <Check size={20} />
                   Link Copied!
@@ -308,19 +377,25 @@ export function Wishlist({ sharedCards, ownerName }: WishlistProps) {
             {cards.map((card) => (
               <CardItem
                 key={card.id}
-                onMouseEnter={() => setHoveredCardId(card.id)}
-                onMouseLeave={() => setHoveredCardId(null)}
+                onMouseEnter={() =>
+                  dispatch({ type: 'SET_HOVERED_CARD', payload: card.id })
+                }
+                onMouseLeave={() =>
+                  dispatch({ type: 'SET_HOVERED_CARD', payload: null })
+                }
               >
                 <CardImageContainer>
-                  {!loadedImages.has(card.id) && <CardImagePlaceholder />}
+                  {!state.loadedImages.has(card.id) && <CardImagePlaceholder />}
                   <CardImage
                     src={card.image}
                     alt={card.name}
                     loading='lazy'
-                    $loaded={loadedImages.has(card.id)}
-                    onClick={() => setSelectedCard(card)}
+                    $loaded={state.loadedImages.has(card.id)}
+                    onClick={() =>
+                      dispatch({ type: 'SET_SELECTED_CARD', payload: card })
+                    }
                     onLoad={() => {
-                      setLoadedImages((prev) => new Set([...prev, card.id]));
+                      dispatch({ type: 'ADD_LOADED_IMAGE', payload: card.id });
                     }}
                     onError={(e) => {
                       const img = e.target as HTMLImageElement;
@@ -337,24 +412,24 @@ export function Wishlist({ sharedCards, ownerName }: WishlistProps) {
                   <RemoveButton
                     className='remove-button'
                     onClick={() => handleRemove(card.id)}
-                    $isMobile={isMobile}
+                    $isMobile={state.isMobile}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = '#cc0000';
-                      if (!isMobile) {
+                      if (!state.isMobile) {
                         e.currentTarget.style.transform = 'scale(1.1)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor =
                         'rgba(255, 68, 68, 0.9)';
-                      if (!isMobile) {
+                      if (!state.isMobile) {
                         e.currentTarget.style.transform = 'scale(1)';
                       }
                     }}
                     title='Remove from wishlist'
                   >
                     <X size={16} strokeWidth={2} />
-                    {isMobile && <span>Remove</span>}
+                    {state.isMobile && <span>Remove</span>}
                   </RemoveButton>
                 )}
               </CardItem>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useReducer } from 'react';
 import { formatAssetUrl } from './services/pokemon-tcg-api';
 import type { PokemonSet } from './types/pokemon-tcg';
 import { CardGrid } from './components/CardGrid';
@@ -28,15 +28,76 @@ import {
 
 type View = 'home' | 'collection' | 'wishlist';
 
+type AppState = {
+  currentView: View;
+  selectedSet: string;
+  searchInput: string;
+  showSuggestions: boolean;
+  sharedWishlist: StoredCard[] | null;
+};
+
+type AppAction =
+  | { type: 'SET_VIEW'; payload: View }
+  | { type: 'SET_SELECTED_SET'; payload: string }
+  | { type: 'SET_SEARCH_INPUT'; payload: string }
+  | { type: 'SET_SHOW_SUGGESTIONS'; payload: boolean }
+  | { type: 'SET_SHARED_WISHLIST'; payload: StoredCard[] | null }
+  | { type: 'SELECT_SET'; payload: { set: PokemonSet } }
+  | { type: 'NAVIGATE'; payload: View }
+  | { type: 'CLEAR_SEARCH' };
+
+function appReducer(state: AppState, action: AppAction): AppState {
+  switch (action.type) {
+    case 'SET_VIEW':
+      return { ...state, currentView: action.payload };
+    case 'SET_SELECTED_SET':
+      return { ...state, selectedSet: action.payload };
+    case 'SET_SEARCH_INPUT':
+      return {
+        ...state,
+        searchInput: action.payload,
+        showSuggestions: true,
+        selectedSet: action.payload ? state.selectedSet : '',
+      };
+    case 'SET_SHOW_SUGGESTIONS':
+      return { ...state, showSuggestions: action.payload };
+    case 'SET_SHARED_WISHLIST':
+      return { ...state, sharedWishlist: action.payload };
+    case 'SELECT_SET':
+      return {
+        ...state,
+        selectedSet: action.payload.set.id,
+        searchInput: action.payload.set.name,
+        showSuggestions: false,
+      };
+    case 'NAVIGATE':
+      return {
+        ...state,
+        currentView: action.payload,
+        sharedWishlist:
+          action.payload !== 'wishlist' ? null : state.sharedWishlist,
+      };
+    case 'CLEAR_SEARCH':
+      return {
+        ...state,
+        searchInput: '',
+        selectedSet: '',
+        showSuggestions: false,
+      };
+    default:
+      return state;
+  }
+}
+
 function App() {
-  const [currentView, setCurrentView] = useState<View>('home');
-  const [selectedSet, setSelectedSet] = useState('');
+  const [state, dispatch] = useReducer(appReducer, {
+    currentView: 'home',
+    selectedSet: '',
+    searchInput: '',
+    showSuggestions: false,
+    sharedWishlist: null,
+  });
   const { sets, loading, error } = usePokemonSets();
-  const [searchInput, setSearchInput] = useState('');
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [sharedWishlist, setSharedWishlist] = useState<StoredCard[] | null>(
-    null,
-  );
 
   // Check for shared wishlist in URL on mount
   useEffect(() => {
@@ -46,15 +107,15 @@ function App() {
     if (wishlistParam) {
       const decoded = storageService.decodeSharedWishlist(wishlistParam);
       if (decoded.length > 0) {
-        setSharedWishlist(decoded);
-        setCurrentView('wishlist');
+        dispatch({ type: 'SET_SHARED_WISHLIST', payload: decoded });
+        dispatch({ type: 'SET_VIEW', payload: 'wishlist' });
       }
     }
   }, []);
 
   // Filter sets based on search input
   const filteredSets = sets.filter((set) => {
-    const searchTerm = searchInput.toLowerCase();
+    const searchTerm = state.searchInput.toLowerCase();
     return (
       set.name.toLowerCase().includes(searchTerm) ||
       set.id.toLowerCase().includes(searchTerm) ||
@@ -64,44 +125,38 @@ function App() {
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchInput(value);
-    setShowSuggestions(true);
-    if (!value) {
-      setSelectedSet('');
-    }
+    dispatch({ type: 'SET_SEARCH_INPUT', payload: e.target.value });
   };
 
   const handleSelectSet = (set: PokemonSet) => {
-    setSelectedSet(set.id);
-    setSearchInput(set.name);
-    setShowSuggestions(false);
+    dispatch({ type: 'SELECT_SET', payload: { set } });
   };
 
   const handleInputFocus = () => {
-    setShowSuggestions(true);
+    dispatch({ type: 'SET_SHOW_SUGGESTIONS', payload: true });
   };
 
   const handleInputBlur = () => {
     // Delay hiding to allow click on suggestion
-    setTimeout(() => setShowSuggestions(false), 200);
+    setTimeout(
+      () => dispatch({ type: 'SET_SHOW_SUGGESTIONS', payload: false }),
+      200,
+    );
   };
 
   const handleNavigate = (view: View) => {
-    setCurrentView(view);
-    // Clear shared wishlist when navigating away from shared view
+    dispatch({ type: 'NAVIGATE', payload: view });
+    // Clear URL params when navigating away from wishlist
     if (view !== 'wishlist') {
-      setSharedWishlist(null);
-      // Clear URL params
       window.history.replaceState({}, '', window.location.pathname);
     }
   };
 
   // Render different views based on currentView
-  if (currentView === 'collection') {
+  if (state.currentView === 'collection') {
     return (
       <>
-        <Header onNavigate={handleNavigate} currentView={currentView} />
+        <Header onNavigate={handleNavigate} currentView={state.currentView} />
         <main id='main-content'>
           <Collection />
         </main>
@@ -109,12 +164,12 @@ function App() {
     );
   }
 
-  if (currentView === 'wishlist') {
+  if (state.currentView === 'wishlist') {
     return (
       <>
-        <Header onNavigate={handleNavigate} currentView={currentView} />
+        <Header onNavigate={handleNavigate} currentView={state.currentView} />
         <main id='main-content'>
-          <Wishlist sharedCards={sharedWishlist} ownerName='Friend' />
+          <Wishlist sharedCards={state.sharedWishlist} ownerName='Friend' />
         </main>
       </>
     );
@@ -122,7 +177,7 @@ function App() {
 
   return (
     <>
-      <Header onNavigate={handleNavigate} currentView={currentView} />
+      <Header onNavigate={handleNavigate} currentView={state.currentView} />
 
       <main id='main-content'>
         <Container>
@@ -142,18 +197,20 @@ function App() {
                 <SearchInput
                   id='set-select'
                   type='text'
-                  value={searchInput}
+                  value={state.searchInput}
                   onChange={handleInputChange}
                   onFocus={handleInputFocus}
                   onBlur={handleInputBlur}
                   placeholder='Search for a Pokemon TCG set...'
                   role='combobox'
-                  aria-expanded={showSuggestions && filteredSets.length > 0}
+                  aria-expanded={
+                    state.showSuggestions && filteredSets.length > 0
+                  }
                   aria-controls='set-suggestions'
                   aria-autocomplete='list'
                   aria-label='Search for Pokemon TCG sets by name or series'
                 />
-                {showSuggestions && filteredSets.length > 0 && (
+                {state.showSuggestions && filteredSets.length > 0 && (
                   <SuggestionsDropdown
                     id='set-suggestions'
                     role='listbox'
@@ -163,7 +220,7 @@ function App() {
                       <SuggestionItem
                         key={set.id}
                         role='option'
-                        aria-selected={selectedSet === set.id}
+                        aria-selected={state.selectedSet === set.id}
                         tabIndex={0}
                         onClick={() => handleSelectSet(set)}
                         onKeyDown={(e) => {
@@ -188,10 +245,10 @@ function App() {
             )}
           </SearchSection>
 
-          {selectedSet && (
+          {state.selectedSet && (
             <SelectedSetContainer>
               {(() => {
-                const set = sets.find((s) => s.id === selectedSet);
+                const set = sets.find((s) => s.id === state.selectedSet);
                 if (!set) return null;
                 console.log({ set });
                 return (
@@ -225,7 +282,7 @@ function App() {
                       )}
                     </SetImagesContainer>
 
-                    <CardGrid setId={selectedSet} setName={set.name} />
+                    <CardGrid setId={state.selectedSet} setName={set.name} />
                   </>
                 );
               })()}
@@ -234,7 +291,7 @@ function App() {
         </Container>
 
         {/* Show Hero Section when no set is selected */}
-        {!selectedSet && <HeroSection />}
+        {!state.selectedSet && <HeroSection />}
       </main>
     </>
   );

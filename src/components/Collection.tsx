@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useReducer } from 'react';
 import styled from 'styled-components';
 import { storageService, type StoredCard } from '../services/storage';
 import { X } from 'lucide-react';
@@ -23,19 +23,67 @@ const CollectionTitle = styled(CardGridTitle)`
   font-size: 2.2rem;
 `;
 
+type CollectionState = {
+  cards: StoredCard[];
+  selectedCard: StoredCard | null;
+  hoveredCardId: string | null;
+  isMobile: boolean;
+  loadedImages: Set<string>;
+};
+
+type CollectionAction =
+  | { type: 'SET_CARDS'; payload: StoredCard[] }
+  | { type: 'SET_SELECTED_CARD'; payload: StoredCard | null }
+  | { type: 'SET_HOVERED_CARD'; payload: string | null }
+  | { type: 'SET_IS_MOBILE'; payload: boolean }
+  | { type: 'ADD_LOADED_IMAGE'; payload: string }
+  | { type: 'REMOVE_CARD'; payload: string };
+
+function collectionReducer(
+  state: CollectionState,
+  action: CollectionAction,
+): CollectionState {
+  switch (action.type) {
+    case 'SET_CARDS':
+      return { ...state, cards: action.payload };
+    case 'SET_SELECTED_CARD':
+      return { ...state, selectedCard: action.payload };
+    case 'SET_HOVERED_CARD':
+      return { ...state, hoveredCardId: action.payload };
+    case 'SET_IS_MOBILE':
+      return { ...state, isMobile: action.payload };
+    case 'ADD_LOADED_IMAGE':
+      return {
+        ...state,
+        loadedImages: new Set([...state.loadedImages, action.payload]),
+      };
+    case 'REMOVE_CARD':
+      const newCards = state.cards.filter((card) => card.id !== action.payload);
+      const newSelectedCard =
+        state.selectedCard?.id === action.payload ? null : state.selectedCard;
+      return {
+        ...state,
+        cards: newCards,
+        selectedCard: newSelectedCard,
+      };
+    default:
+      return state;
+  }
+}
+
 export function Collection() {
-  const [cards, setCards] = useState<StoredCard[]>(() =>
-    storageService.getCollection(),
-  );
-  const [selectedCard, setSelectedCard] = useState<StoredCard | null>(null);
-  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
-  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
+  const [state, dispatch] = useReducer(collectionReducer, {
+    cards: storageService.getCollection(),
+    selectedCard: null,
+    hoveredCardId: null,
+    isMobile: false,
+    loadedImages: new Set<string>(),
+  });
 
   // Detect mobile screen size
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 800);
+      dispatch({ type: 'SET_IS_MOBILE', payload: window.innerWidth < 800 });
     };
 
     checkMobile();
@@ -45,12 +93,12 @@ export function Collection() {
 
   const loadCards = () => {
     const collection = storageService.getCollection();
-    setCards(collection);
+    dispatch({ type: 'SET_CARDS', payload: collection });
   };
 
   // Sort cards by set name, then by local ID
   const sortedCards = useMemo(() => {
-    return [...cards].sort((a, b) => {
+    return [...state.cards].sort((a, b) => {
       // Sort by set name first
       const setCompare = (a.setName || '').localeCompare(b.setName || '');
       if (setCompare !== 0) return setCompare;
@@ -59,37 +107,33 @@ export function Collection() {
         numeric: true,
       });
     });
-  }, [cards]);
+  }, [state.cards]);
 
   const handleRemove = (cardId: string) => {
     storageService.removeFromCollection(cardId);
-    loadCards();
-    // Close modal if the removed card is currently selected
-    if (selectedCard && selectedCard.id === cardId) {
-      setSelectedCard(null);
-    }
+    dispatch({ type: 'REMOVE_CARD', payload: cardId });
   };
 
   const handleToggleWishlist = () => {
-    if (!selectedCard) return;
+    if (!state.selectedCard) return;
 
     const wishlist = storageService.getWishlist();
-    const inWishlist = wishlist.some((c) => c.id === selectedCard.id);
+    const inWishlist = wishlist.some((c) => c.id === state.selectedCard!.id);
 
     if (inWishlist) {
-      storageService.removeFromWishlist(selectedCard.id);
+      storageService.removeFromWishlist(state.selectedCard.id);
     } else {
-      storageService.addToWishlist(selectedCard);
+      storageService.addToWishlist(state.selectedCard);
     }
     // Force re-render by creating new card object
-    setSelectedCard({ ...selectedCard });
+    dispatch({ type: 'SET_SELECTED_CARD', payload: { ...state.selectedCard } });
   };
 
   // Handle ESC key to close modal
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setSelectedCard(null);
+        dispatch({ type: 'SET_SELECTED_CARD', payload: null });
       }
     };
     window.addEventListener('keydown', handleEscape);
@@ -99,18 +143,22 @@ export function Collection() {
   return (
     <>
       <CardModal
-        card={selectedCard}
-        onClose={() => setSelectedCard(null)}
+        card={state.selectedCard}
+        onClose={() => dispatch({ type: 'SET_SELECTED_CARD', payload: null })}
         inCollection={true}
         inWishlist={
-          selectedCard
-            ? storageService.getWishlist().some((c) => c.id === selectedCard.id)
+          state.selectedCard
+            ? storageService
+                .getWishlist()
+                .some((c) => c.id === state.selectedCard!.id)
             : false
         }
         onToggleCollection={
-          selectedCard ? () => handleRemove(selectedCard.id) : undefined
+          state.selectedCard
+            ? () => handleRemove(state.selectedCard!.id)
+            : undefined
         }
-        onToggleWishlist={selectedCard ? handleToggleWishlist : undefined}
+        onToggleWishlist={state.selectedCard ? handleToggleWishlist : undefined}
       />
       <CardGridContainer>
         <CollectionTitle>
@@ -126,19 +174,25 @@ export function Collection() {
             {sortedCards.map((card) => (
               <CardItem
                 key={card.id}
-                onMouseEnter={() => setHoveredCardId(card.id)}
-                onMouseLeave={() => setHoveredCardId(null)}
+                onMouseEnter={() =>
+                  dispatch({ type: 'SET_HOVERED_CARD', payload: card.id })
+                }
+                onMouseLeave={() =>
+                  dispatch({ type: 'SET_HOVERED_CARD', payload: null })
+                }
               >
                 <CardImageContainer>
-                  {!loadedImages.has(card.id) && <CardImagePlaceholder />}
+                  {!state.loadedImages.has(card.id) && <CardImagePlaceholder />}
                   <CardImage
                     src={card.image}
                     alt={card.name}
                     loading='lazy'
-                    $loaded={loadedImages.has(card.id)}
-                    onClick={() => setSelectedCard(card)}
+                    $loaded={state.loadedImages.has(card.id)}
+                    onClick={() =>
+                      dispatch({ type: 'SET_SELECTED_CARD', payload: card })
+                    }
                     onLoad={() => {
-                      setLoadedImages((prev) => new Set([...prev, card.id]));
+                      dispatch({ type: 'ADD_LOADED_IMAGE', payload: card.id });
                     }}
                     onError={(e) => {
                       const img = e.target as HTMLImageElement;
@@ -154,7 +208,7 @@ export function Collection() {
                 <RemoveButton
                   className='remove-button'
                   onClick={() => handleRemove(card.id)}
-                  $isMobile={isMobile}
+                  $isMobile={state.isMobile}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = '#cc0000';
                     if (!isMobile) {
@@ -164,14 +218,14 @@ export function Collection() {
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor =
                       'rgba(255, 68, 68, 0.9)';
-                    if (!isMobile) {
+                    if (!state.isMobile) {
                       e.currentTarget.style.transform = 'scale(1)';
                     }
                   }}
                   title='Remove from collection'
                 >
                   <X size={16} strokeWidth={2} />
-                  {isMobile && <span>Remove</span>}
+                  {state.isMobile && <span>Remove</span>}
                 </RemoveButton>
               </CardItem>
             ))}
