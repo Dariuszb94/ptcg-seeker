@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useReducer } from 'react';
+import { useEffect, useMemo, useReducer } from 'react';
 import styled from 'styled-components';
 import { storageService, type StoredCard } from '../services/storage';
 import { pokemonTcgApi, formatImageUrl } from '../services/pokemon-tcg-api';
@@ -29,11 +29,10 @@ const HeaderContainer = styled.div<{ $isMobile?: boolean }>`
   gap: ${(props) => (props.$isMobile ? '1rem' : 0)};
 `;
 
-const WishlistTitle = styled(CardGridTitle)`
+const WishlistTitle = styled(CardGridTitle)<{ $isMobile?: boolean }>`
   font-size: 2.2rem;
   margin: 0;
-  text-align: ${(props: { $isMobile?: boolean }) =>
-    props.$isMobile ? 'center' : 'left'};
+  text-align: ${(props) => (props.$isMobile ? 'center' : 'left')};
 `;
 
 const LoadingSpan = styled.span`

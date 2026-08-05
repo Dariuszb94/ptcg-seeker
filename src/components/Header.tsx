@@ -39,7 +39,7 @@ const LogoButton = styled.button`
   display: flex;
   align-items: center;
   box-shadow: none;
-  
+
   &:hover {
     transform: none;
     box-shadow: none;
@@ -64,7 +64,9 @@ const NavButton = styled.button<{ $isActive?: boolean; $activeColor?: string }>`
   align-items: center;
   gap: 0.5rem;
   font-size: 1rem;
-  transition: background-color 0.2s, transform 220ms ease;
+  transition:
+    background-color 0.2s,
+    transform 220ms ease;
   box-shadow: var(--shadow-sm);
 
   &:hover {
@@ -121,6 +123,6 @@ export const Header = ({ onNavigate, currentView = 'home' }: HeaderProps) => {
           )}
         </Nav>
       </HeaderContent>
-    </header>
+    </HeaderContainer>
   );
 };

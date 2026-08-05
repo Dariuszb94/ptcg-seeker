@@ -5,7 +5,7 @@ import { Heart, Plus, Check, Star } from 'lucide-react';
 import {
   CardGridContainer,
   CardGridTitle,
-  CardGrid,
+  CardGrid as StyledCardGrid,
   CardItem,
   CardImageContainer,
   CardImagePlaceholder,
@@ -281,7 +281,7 @@ export function CardGrid({ setId, setName }: CardGridProps) {
       />
       <CardGridContainer>
         <CardGridTitle>Cards in this Set ({state.cards.length})</CardGridTitle>
-        <CardGrid>
+        <StyledCardGrid>
           {state.cards.map((card) => {
             const inCollection = state.collectionIds.has(card.id);
             const inWishlist = state.wishlistIds.has(card.id);
@@ -379,7 +379,7 @@ export function CardGrid({ setId, setName }: CardGridProps) {
               </CardItem>
             );
           })}
-        </CardGrid>
+        </StyledCardGrid>
       </CardGridContainer>
     </>
   );

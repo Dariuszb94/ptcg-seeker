@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useReducer } from 'react';
+import { useEffect, useMemo, useReducer } from 'react';
 import styled from 'styled-components';
 import { storageService, type StoredCard } from '../services/storage';
 import { X } from 'lucide-react';
@@ -90,11 +90,6 @@ export function Collection() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-
-  const loadCards = () => {
-    const collection = storageService.getCollection();
-    dispatch({ type: 'SET_CARDS', payload: collection });
-  };
 
   // Sort cards by set name, then by local ID
   const sortedCards = useMemo(() => {
@@ -211,7 +206,7 @@ export function Collection() {
                   $isMobile={state.isMobile}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = '#cc0000';
-                    if (!isMobile) {
+                    if (!state.isMobile) {
                       e.currentTarget.style.transform = 'scale(1.1)';
                     }
                   }}

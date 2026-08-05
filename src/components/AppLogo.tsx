@@ -98,4 +98,3 @@ export const AppLogo = () => {
     </LogoContainer>
   );
 };
-};
