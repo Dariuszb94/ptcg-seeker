@@ -250,7 +250,6 @@ function App() {
               {(() => {
                 const set = sets.find((s) => s.id === state.selectedSet);
                 if (!set) return null;
-                console.log({ set });
                 return (
                   <>
                     <SetImagesContainer>

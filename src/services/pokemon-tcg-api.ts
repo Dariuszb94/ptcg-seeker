@@ -21,7 +21,7 @@ const BASE_URL = 'https://api.tcgdex.net/v2/en';
 export function formatImageUrl(
   imageUrl: string | undefined,
   quality: 'high' | 'low' = 'low',
-  extension: 'webp' | 'png' | 'jpg' = 'webp'
+  extension: 'webp' | 'png' | 'jpg' = 'webp',
 ): string {
   if (!imageUrl) return '';
   return `${imageUrl}/${quality}.${extension}`;
@@ -38,7 +38,7 @@ export function formatImageUrl(
  */
 export function formatAssetUrl(
   assetUrl: string | undefined,
-  extension: 'webp' | 'png' | 'jpg' = 'webp'
+  extension: 'webp' | 'png' | 'jpg' = 'webp',
 ): string {
   if (!assetUrl) return '';
   return `${assetUrl}.${extension}`;
@@ -51,7 +51,6 @@ export const pokemonTcgApi = {
    */
   async getSets(): Promise<SetsResponse> {
     const url = `${BASE_URL}/sets`;
-    console.log('Fetching sets from:', url);
 
     const response = await fetch(url);
 
@@ -59,7 +58,7 @@ export const pokemonTcgApi = {
       const errorText = await response.text();
       console.error('API Error:', response.status, errorText);
       throw new Error(
-        `Failed to fetch sets: ${response.status} ${response.statusText}`
+        `Failed to fetch sets: ${response.status} ${response.statusText}`,
       );
     }
 
@@ -72,7 +71,6 @@ export const pokemonTcgApi = {
    */
   async getSet(setId: string): Promise<DetailedSet> {
     const url = `${BASE_URL}/sets/${setId}`;
-    console.log('Fetching set:', url);
 
     const response = await fetch(url);
 
@@ -80,7 +78,7 @@ export const pokemonTcgApi = {
       const errorText = await response.text();
       console.error('API Error:', response.status, errorText);
       throw new Error(
-        `Failed to fetch set: ${response.status} ${response.statusText}`
+        `Failed to fetch set: ${response.status} ${response.statusText}`,
       );
     }
 
@@ -116,7 +114,6 @@ export const pokemonTcgApi = {
    */
   async getCard(cardId: string): Promise<Card> {
     const url = `${BASE_URL}/card/${cardId}`;
-    console.log('Fetching card:', url);
 
     const response = await fetch(url);
 
@@ -124,7 +121,7 @@ export const pokemonTcgApi = {
       const errorText = await response.text();
       console.error('API Error:', response.status, errorText);
       throw new Error(
-        `Failed to fetch card: ${response.status} ${response.statusText}`
+        `Failed to fetch card: ${response.status} ${response.statusText}`,
       );
     }
 
@@ -137,7 +134,6 @@ export const pokemonTcgApi = {
    */
   async searchCards(query: string): Promise<CardsResponse> {
     const url = `${BASE_URL}/cards?name=${encodeURIComponent(query)}`;
-    console.log('Searching cards:', url);
 
     const response = await fetch(url);
 
@@ -145,7 +141,7 @@ export const pokemonTcgApi = {
       const errorText = await response.text();
       console.error('API Error:', response.status, errorText);
       throw new Error(
-        `Failed to search cards: ${response.status} ${response.statusText}`
+        `Failed to search cards: ${response.status} ${response.statusText}`,
       );
     }
 
