@@ -4,24 +4,32 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/ptcg-seeker/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Track your Pokemon TCG collection, build wishlists, and discover amazing cards from every set" />
+    <meta
+      name="description"
+      content="Track your Pokemon TCG collection, build wishlists, and discover amazing cards from every set"
+    />
     <title>Pokemon TCG Seeker - Collection Manager</title>
-    
+
     <!-- Single Page Apps for GitHub Pages - Handle 404 redirects -->
     <script>
-      (function(l) {
-        if (l.search[1] === '/' ) {
-          var decoded = l.search.slice(1).split('&').map(function(s) { 
-            return s.replace(/~and~/g, '&')
-          }).join('?');
-          window.history.replaceState(null, null,
-              l.pathname.slice(0, -1) + decoded + l.hash
+      (function (l) {
+        if (l.search[1] === '/') {
+          var decoded = l.search
+            .slice(1)
+            .split('&')
+            .map(function (s) {
+              return s.replace(/~and~/g, '&');
+            })
+            .join('?');
+          window.history.replaceState(
+            null,
+            null,
+            l.pathname.slice(0, -1) + decoded + l.hash,
           );
         }
-      }(window.location))
+      })(window.location);
     </script>
-    <script type="module" crossorigin src="/ptcg-seeker/assets/index-C23RJ5x-.js"></script>
-    <link rel="stylesheet" crossorigin href="/ptcg-seeker/assets/index-bccNQDwX.css">
+    <script type="module" crossorigin src="/ptcg-seeker/assets/index-BuC4o2m2.js"></script>
   </head>
   <body>
     <div id="root"></div>
